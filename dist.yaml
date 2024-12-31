@@ -1,0 +1,14 @@
+stormglass:
+  apiKey: fixme
+
+weatherapi:
+  apiKey: fixme
+
+firebase:
+  apiKey: fixme
+  authDomain: fixme
+  projectId: fixme
+  storageBucket: fixme
+  messagingSenderId: fixme
+  appId: fixme
+  measurementId: fixme
