@@ -21,11 +21,7 @@ firebase_config = authfile.get('firebase', {})
 
 #Suhas nga replace this path with ur own path once I send you the json file, dont keep it in project folder for security reasons
 cred = credentials.Certificate("/Users/rajaselvamjayakumar/Downloads/tsa-agriculture-app-firebase-adminsdk-4jash-f87e772be9.json")
-firebase_admin.initialize_app(cred)
-
-db = firestore.client()
-
-app = firebase_admin.initialize_app()
+app = firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 api_usage = {
