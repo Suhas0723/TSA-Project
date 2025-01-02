@@ -1,12 +1,26 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import yaml
 import requests
+from models import User
+import firebase_admin
+from firebase_admin import credentials, auth, firestore
+import secrets
 
 app = Flask(__name__)
 
 with open('auth.yaml', 'r') as file:
-    auth = yaml.safe_load(file)
-	
+    authfile = yaml.safe_load(file)
+
+app.secret_key = authfile['flask']['secretKey']
+
+firebase_config = authfile.get('firebase', {})
+
+#Suhas nga replace this path with ur own path once I send you the json file, dont keep it in project folder for security reasons
+cred = credentials.Certificate("/Users/rajaselvamjayakumar/Downloads/tsa-agriculture-app-firebase-adminsdk-4jash-f87e772be9.json")
+firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
 stormglass_response = requests.get(
   'https://api.stormglass.io/v2/bio/point',
   params={
@@ -15,7 +29,7 @@ stormglass_response = requests.get(
     'params': ','.join(['soilMoisture', 'soilTemperature'])
   },
   headers={
-    'Authorization': auth['stormglass']['apiKey']
+    'Authorization': authfile['stormglass']['apiKey']
   }
 )
 
@@ -24,7 +38,7 @@ stormglass_data = stormglass_response.json()
 weatherapi_response = requests.get(
     'https://api.weatherapi.com/v1/forecast.json', 
     params={
-        'key': auth['weatherapi']['apiKey'],
+        'key': authfile['weatherapi']['apiKey'],
         'q': "Atlanta",
         'days': 10
     }
@@ -57,11 +71,51 @@ for day in weatherapi_data['forecast']['forecastday']:
     average_cloud_covers.append(avg_cloud)
     average_precipitations.append(avg_precip)
 
-
-
 @app.route("/")
 def index():
-	return render_template("index.html")
+    if "currentUser" in session:
+        username = session["currentUser"]['name']
+    else:
+        return redirect(url_for("signup"))
+    
+    return render_template("index.html", username=username)
+
+@app.route('/api/create_user', methods=['POST'])
+def create_user():
+    data = request.json
+    if not data:
+        return jsonify({"message": "No data provided"}), 400
+
+    # Extract user details
+    uid = data.get('uid')
+    session['currentUser'] = db.collection('users').document(uid).get().to_dict()
+
+    return jsonify({"message": "User created successfully"}), 201
+
+@app.route("/signup", methods=["GET"])
+def signup():
+    if request.method == "GET":
+        # Render the signup page
+        return render_template("login_signup.html", firebase_config=firebase_config)
+        
+@app.route('/api/login_user', methods=['POST'])
+def login_user():
+    data = request.json
+    if not data:
+        return jsonify({"message": "No data provided"}), 400
+
+    # Extract user details
+    uid = data.get('uid')
+
+    session['currentUser'] = db.collection('users').document(uid).get().to_dict()
+    print(session['currentUser'])
+
+    return jsonify({"message": "Login successful"}), 200
+
+@app.route('/logout')
+def logout():
+    session.pop('currentUser', None)
+    return redirect(url_for('signup'))
 
 if __name__ == "__main__":
 	app.run(debug=True)

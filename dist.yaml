@@ -12,3 +12,6 @@ firebase:
   messagingSenderId: fixme
   appId: fixme
   measurementId: fixme
+
+flask:
+  secretKey: fixme
