@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 :root{
-    --color-primary: #6C9BCF;
-    --color-danger: #FF0060;
-    --color-success: #1B9C85;
-    --color-warning: #F7D060;
-    --color-white: #fff;
-    --color-info-dark: #7d8da1;
-    --color-dark: #363949;
-    --color-light: rgba(132, 139, 200, 0.18);
-    --color-dark-variant: #677483;
+    --color-primary: #6D9C4E;
+    --color-danger: #C0392B;
+    --color-success: #7FB414;
+    --color-warning: #F1C40F;
+    --color-white: #ffffff;
+    --color-info-dark: #5F6D41;
+    --color-dark: #3C3B3A;
+    --color-light: rgba(192, 219, 168, 0.18);
+    --color-dark-variant: #445233;
     --color-background: #f6f6f9;
 
     --card-border-radius: 2rem;
@@ -274,25 +274,26 @@ main .analyse svg circle{
     transform: translate(5px, 5px);
 }
 
-main .analyse .sales svg circle{
+main .analyse .moisture svg circle{
     stroke: var(--color-success);
-    stroke-dashoffset: -30;
+    stroke-dashoffset: 200;
     stroke-dasharray: 200;
+    box-shadow: var(--box-shadow);
 }
 
-main .analyse .visits svg circle{
+main .analyse .temperature svg circle{
     stroke: var(--color-danger);
     stroke-dashoffset: -30;
     stroke-dasharray: 200;
 }
 
-main .analyse .searches svg circle{
+main .analyse .pH svg circle{
     stroke: var(--color-primary);
     stroke-dashoffset: -30;
-    stroke-dasharray: 200;
+    stroke-dasharray: 200   ;
 }
 
-main .analyse .progresss .percentage{
+main .analyse .progresss .circle-icon{
     position: absolute;
     top: -3px;
     left: -1px;

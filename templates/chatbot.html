@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>AgriBot - AI Chatbot</title>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar Section -->
+        <aside>
+            <div class="toggle">
+                <div class="logo">
+                    <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}" style="width: 25px; height: 25px">
+                    <h2>Agro<span class="success">Assistant</span></h2>
+                </div>
+                <div class="close" id="close-btn">
+                    <span class="material-icons-sharp">close</span>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <a href="/">
+                    <span class="material-icons-sharp">dashboard</span>
+                    <h3>Dashboard</h3>
+                </a>
+                <a href="/crops">
+                    <span class="material-icons-sharp">yard</span>
+                    <h3>Crops</h3>
+                </a>
+                <a href="/water-usage">
+                    <span class="material-icons-sharp">water_drop</span>
+                    <h3>Water Usage</h3>
+                </a>
+                <a href="/chatbot" class="active">
+                    <span class="material-icons-sharp">forum</span>
+                    <h3>AgriBot</h3>
+                </a>
+                <a href="#">
+                    <span class="material-icons-sharp">logout</span>
+                    <h3>Logout</h3>
+                </a>
+            </div>
+        </aside>
+        <!-- End of Sidebar Section -->
+
+        <!-- Main Content -->
+        <main>
+            <h1>AgriBot - AI Chatbot</h1>
+            <div class="chat-container">
+                <div class="chat-box" id="chat-box">
+                    <!-- Chat messages will appear here -->
+                </div>
+                <div class="chat-input">
+                    <form id="chat-form">
+                        <input 
+                          type="text" 
+                          id="question" 
+                          name="question" 
+                          placeholder="Ask AgriBot about agriculture..." 
+                        />
+                        <button type="submit">
+                          <span class="material-icons-sharp">send</span>
+                        </button>
+                      </form>
+                      <button type="button" class="btn-danger" id="close-btn" onclick="clearText()">
+                        <span class="material-icons-sharp">close</span>   
+                      </button>              
+                </div>
+            </div>
+        </main>        
+        <!-- End of Main Content -->
+    </div>
+
+    <script>
+        const closeBtn = document.getElementById('close-btn');
+        const chatForm = document.getElementById('chat-form');
+        const chatBox  = document.getElementById('chat-box');
+
+        function clearText() {
+            document.getElementById('chat-box').innerHTML = '';
+        }
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     console.log('DOM fully loaded, setting up event listeners...');
+
+        //     // Grab the close button by its ID
+        //     const closeBtn = document.getElementById('close-btn');
+        //     console.log('closeBtn is:', closeBtn);  // Check if it's null or not
+
+        //     // Safety check: if closeBtn is null, it means we didn't find the element
+        //     if (!closeBtn) {
+        //         console.error('Close button not found in DOM!');
+        //         return;
+        //     }
+
+        //     // Add the click event listener
+        //     closeBtn.addEventListener('click', () => {
+        //         console.log('Close button clicked!');
+                
+        //         // Example: Clear out the chat box
+        //         const chatBox = document.getElementById('chat-box');
+        //         chatBox.innerHTML = '<div class="chat-box" id="chat-box"></div>';
+        //     });
+        // });
+                // Listen for form submit
+        chatForm.addEventListener('submit', (e) => {
+          e.preventDefault(); // Stop normal form submission (no page reload)
+    
+          const userInput = document.getElementById('question');
+          const questionText = userInput.value.trim();
+    
+          if (!questionText) return; // Nothing typed?
+    
+          // Display the user's question (in the chat box, for example)
+          addMessage('You', questionText);
+    
+          // Clear the input
+          userInput.value = '';
+    
+          // Send question to Flask as JSON
+          fetch('/chatbot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: questionText })
+          })
+          .then(response => response.json())
+          .then(data => {
+            // data.response is what we got from Flask
+            addMessage('AgriBot', data.response);
+          })
+          .catch(err => console.error('Error:', err));
+        });
+    
+        function addMessage(sender, text) {
+          const msg = document.createElement('div');
+          msg.innerHTML = `<b>${sender}:</b> ${text}`;
+          chatBox.appendChild(msg);
+          chatBox.scrollTop = chatBox.scrollHeight; // auto-scroll
+        }
+    </script>
+
+    <style>
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--color-white);
+            padding: var(--card-padding);
+            border-radius: var(--card-border-radius);
+            box-shadow: var(--box-shadow);
+            height: 60vh;
+            max-width: 50%;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: var(--color-background);
+            border-radius: var(--border-radius-2);
+        }
+        .chat-input {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .chat-input form {
+            display: flex;
+            flex: 1;
+            gap: 0.5rem;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: var(--border-radius-2);
+            border: 1px solid var(--color-light);
+        }
+
+        .chat-input button {
+            background-color: var(--color-primary);
+            color: white;
+            border-radius: var(--border-radius-2);
+            padding: 0.8rem;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .message {
+            margin: 0.5rem 0;
+        }
+    </style>
+</body>
+
+</html>
