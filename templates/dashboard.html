@@ -16,8 +16,8 @@
         <aside>
             <div class="toggle">
                 <div class="logo">
-                    <img src="images/logo.png">
-                    <h2>Asmr<span class="danger">Prog</span></h2>
+                    <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}" style="width: 25px; height: 25px">
+                    <h2>Agro<span class="success">Assistant</span></h2>
                 </div>
                 <div class="close" id="close-btn">
                     <span class="material-icons-sharp">
@@ -27,60 +27,29 @@
             </div>
 
             <div class="sidebar">
-                <a href="#">
+                <a href="/">
                     <span class="material-icons-sharp">
                         dashboard
                     </span>
                     <h3>Dashboard</h3>
                 </a>
-                <a href="#">
+                <a href="/crops">
                     <span class="material-icons-sharp">
-                        person_outline
+                        yard
                     </span>
-                    <h3>Users</h3>
+                    <h3>Crops</h3>
                 </a>
-                <a href="#">
+                <a href="/water-usage">
                     <span class="material-icons-sharp">
-                        receipt_long
+                        water_drop
                     </span>
-                    <h3>History</h3>
+                    <h3>Water Usage</h3>
                 </a>
-                <a href="#" class="active">
+                <a href="/chatbot">
                     <span class="material-icons-sharp">
-                        insights
+                        forum
                     </span>
-                    <h3>Analytics</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">
-                        mail_outline
-                    </span>
-                    <h3>Tickets</h3>
-                    <span class="message-count">27</span>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">
-                        inventory
-                    </span>
-                    <h3>Sale List</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">
-                        report_gmailerrorred
-                    </span>
-                    <h3>Reports</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">
-                        settings
-                    </span>
-                    <h3>Settings</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">
-                        add
-                    </span>
-                    <h3>New Login</h3>
+                    <h3>AgriAI</h3>
                 </a>
                 <a href="#">
                     <span class="material-icons-sharp">
@@ -94,53 +63,59 @@
 
         <!-- Main Content -->
         <main>
-            <h1>Analytics</h1>
+            <h1>Dashboard</h1>
             <!-- Analyses -->
             <div class="analyse">
-                <div class="sales">
+                <div class="moisture">
                     <div class="status">
                         <div class="info">
-                            <h3>Total Sales</h3>
-                            <h1>$65,024</h1>
+                            <h3>Soil Moisture</h3>
+                            <h1>{{ soil_moisture }}m<sup>3</sup>/m<sup>3</sup></h1>
                         </div>
                         <div class="progresss">
                             <svg>
                                 <circle cx="38" cy="38" r="36"></circle>
                             </svg>
-                            <div class="percentage">
-                                <p>+81%</p>
+                            <div class="circle-icon">
+                                <span class="material-icons-sharp">
+                                    opacity
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="visits">
+                <div class="temperature">
                     <div class="status">
                         <div class="info">
-                            <h3>Site Visit</h3>
-                            <h1>24,981</h1>
+                            <h3>Soil Temperature</h3>
+                            <h1>{{ soil_temperature }}°C</h1>
                         </div>
                         <div class="progresss">
                             <svg>
                                 <circle cx="38" cy="38" r="36"></circle>
                             </svg>
-                            <div class="percentage">
-                                <p>-48%</p>
+                            <div class="circle-icon">
+                                <span class="material-icons-sharp">
+                                    thermostat
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="searches">
+                <div class="pH">
                     <div class="status">
                         <div class="info">
-                            <h3>Searches</h3>
-                            <h1>14,147</h1>
+                            <h3>Soil pH</h3>
+                            <h1>7.0</h1>
                         </div>
                         <div class="progresss">
                             <svg>
                                 <circle cx="38" cy="38" r="36"></circle>
                             </svg>
-                            <div class="percentage">
-                                <p>+21%</p>
+                            <div class="circle-icon">
+                                <span class="material-icons-sharp">
+                                    science
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -178,20 +153,28 @@
 
             <!-- Recent Orders Table -->
             <div class="recent-orders">
-                <h2>Recent Orders</h2>
+                <h2>3-Day Weather Forecast</h2>
                 <table>
                     <thead>
                         <tr>
-                            <th>Course Name</th>
-                            <th>Course Number</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                            <th></th>
+                            <th>Date</th>
+                            <th>Temperature(°C)</th>
+                            <th>Cloud Cover(%)</th>
+                            <th>Precipitation(in)</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody>
+                        {% for day in daily_averages %}
+                        <tr>
+                            <td>{{ day.date }}</td>
+                            <td class="danger">{{ day.averageTemperature }}</td>
+                            <td>{{ day.averageCloud }}</td>
+                            <td class="primary">{{ day.averagePrecip }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
                 </table>
-                <a href="#">Show All</a>
+
             </div>
             <!-- End of Recent Orders -->
 
@@ -218,10 +201,6 @@
                 <div class="profile">
                     <div class="info">
                         <p>Hey, <b>Reza</b></p>
-                        <small class="text-muted">Admin</small>
-                    </div>
-                    <div class="profile-photo">
-                        <img src="images/profile-1.jpg">
                     </div>
                 </div>
 
@@ -230,64 +209,18 @@
 
             <div class="user-profile">
                 <div class="logo">
-                    <img src="images/logo.png">
-                    <h2>AsmrProg</h2>
-                    <p>Fullstack Web Developer</p>
+                    <h2>AgriAI</h2>
+                    <a href="#">Talk to AgriAI to learn more plant care tips!</a>
                 </div>
             </div>
 
             <div class="reminders">
-                <div class="header">
-                    <h2>Reminders</h2>
-                    <span class="material-icons-sharp">
-                        notifications_none
-                    </span>
-                </div>
-
-                <div class="notification">
-                    <div class="icon">
-                        <span class="material-icons-sharp">
-                            volume_up
-                        </span>
-                    </div>
-                    <div class="content">
-                        <div class="info">
-                            <h3>Workshop</h3>
-                            <small class="text_muted">
-                                08:00 AM - 12:00 PM
-                            </small>
-                        </div>
-                        <span class="material-icons-sharp">
-                            more_vert
-                        </span>
-                    </div>
-                </div>
-
-                <div class="notification deactive">
-                    <div class="icon">
-                        <span class="material-icons-sharp">
-                            edit
-                        </span>
-                    </div>
-                    <div class="content">
-                        <div class="info">
-                            <h3>Workshop</h3>
-                            <small class="text_muted">
-                                08:00 AM - 12:00 PM
-                            </small>
-                        </div>
-                        <span class="material-icons-sharp">
-                            more_vert
-                        </span>
-                    </div>
-                </div>
-
                 <div class="notification add-reminder">
                     <div>
                         <span class="material-icons-sharp">
                             add
                         </span>
-                        <h3>Add Reminder</h3>
+                        <h3>Add Crops</h3>
                     </div>
                 </div>
 

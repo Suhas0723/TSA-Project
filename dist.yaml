@@ -4,6 +4,9 @@ stormglass:
 weatherapi:
   apiKey: fixme
 
+openAI:
+  apiKey: fixme
+
 firebase:
   apiKey: fixme
   authDomain: fixme
