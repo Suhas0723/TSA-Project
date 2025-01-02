@@ -1,18 +1,32 @@
-from flask import Flask, render_template, request, jsonify
-import yaml
-import requests
 from datetime import date
 import firebase_admin
-from firebase_admin import firestore
 from openai import OpenAI
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+import yaml
+import requests
+from models import User
+import firebase_admin
+from firebase_admin import credentials, auth, firestore
+import secrets
 
 app = firebase_admin.initialize_app()
 db = firestore.client()
 
 with open('auth.yaml', 'r') as file:
-    auth = yaml.safe_load(file)
+    authfile = yaml.safe_load(file)
 
-app = Flask(__name__)
+app.secret_key = authfile['flask']['secretKey']
+
+firebase_config = authfile.get('firebase', {})
+
+#Suhas nga replace this path with ur own path once I send you the json file, dont keep it in project folder for security reasons
+cred = credentials.Certificate("/Users/rajaselvamjayakumar/Downloads/tsa-agriculture-app-firebase-adminsdk-4jash-f87e772be9.json")
+firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+app = firebase_admin.initialize_app()
+db = firestore.client()
 
 api_usage = {
     'stormglass': 0,
@@ -145,6 +159,11 @@ api_to_db()
 
 @app.route('/')
 def index():
+    if "currentUser" in session:
+        username = session["currentUser"]['name']
+    else:
+        return redirect(url_for("signup"))
+    
     doc_id = str(date.today())
     try:
         daily_averages = db.collection("weatherapi_data").document(doc_id).get().to_dict()
@@ -152,7 +171,7 @@ def index():
         soil_moisture = stormglass_data['hours'][1]['soilMoisture']['noaa']
         soil_temperature = stormglass_data['hours'][1]['soilTemperature']['noaa']
     
-        return render_template('dashboard.html', daily_averages=daily_averages['daily_averages'], soil_moisture=soil_moisture, soil_temperature=soil_temperature)
+        return render_template('dashboard.html', daily_averages=daily_averages['daily_averages'], soil_moisture=soil_moisture, soil_temperature=soil_temperature, username=username)
     except Exception as e:
         return f"Error: {str(e)}", 500
 
@@ -174,11 +193,42 @@ def chatbot_api():
     return jsonify({'response': bot_answer})
 
 
-    
+@app.route('/api/create_user', methods=['POST'])
+def create_user():
+    data = request.json
+    if not data:
+        return jsonify({"message": "No data provided"}), 400
 
+    # Extract user details
+    uid = data.get('uid')
+    session['currentUser'] = db.collection('users').document(uid).get().to_dict()
 
+    return jsonify({"message": "User created successfully"}), 201
 
+@app.route("/signup", methods=["GET"])
+def signup():
+    if request.method == "GET":
+        # Render the signup page
+        return render_template("login_signup.html", firebase_config=firebase_config)
+        
+@app.route('/api/login_user', methods=['POST'])
+def login_user():
+    data = request.json
+    if not data:
+        return jsonify({"message": "No data provided"}), 400
 
+    # Extract user details
+    uid = data.get('uid')
+
+    session['currentUser'] = db.collection('users').document(uid).get().to_dict()
+    print(session['currentUser'])
+
+    return jsonify({"message": "Login successful"}), 200
+
+@app.route('/logout')
+def logout():
+    session.pop('currentUser', None)
+    return redirect(url_for('signup'))
 
 if __name__ == "__main__":
     app.run(debug=True)
