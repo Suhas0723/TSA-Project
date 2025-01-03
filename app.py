@@ -9,13 +9,14 @@ import firebase_admin
 from firebase_admin import credentials, auth, firestore
 import secrets
 
-app = firebase_admin.initialize_app()
+app = Flask(__name__)
+firebase = firebase_admin.initialize_app()
 db = firestore.client()
 
 with open('auth.yaml', 'r') as file:
     authfile = yaml.safe_load(file)
 
-app.secret_key = authfile['flask']['secretKey']
+secret_key = authfile['flask']['secretKey']
 
 firebase_config = authfile.get('firebase', {})
 
@@ -56,7 +57,7 @@ def get_stormglass_api():
             'params': ','.join(['soilMoisture','soilTemperature'])
         },
         headers={
-            'Authorization': auth['stormglass']['apiKey']
+            'Authorization': authfile['stormglass']['apiKey']
         }
     )
     response = stormglass_response.json()
@@ -69,7 +70,7 @@ def get_weatherapi_averages():
     weatherapi_response = requests.get(
         'https://api.weatherapi.com/v1/forecast.json',
         params={
-            'key': auth['weatherapi']['apiKey'],
+            'key': authfile['weatherapi']['apiKey'],
             'q': 'Atlanta',
             'days': 10
         }
@@ -109,7 +110,7 @@ def get_weatherapi_averages():
 
 def chatbot_request(question):
     print(question)
-    client = OpenAI(api_key=auth['openAI']['apiKey'])
+    client = OpenAI(api_key=authfile['openAI']['apiKey'])
     instructions =  """
         You are AgriBot, an AI chatbot designed to serve only as an agricultural assistant. You can provide expert answers, guidance, and data related to agriculture, including:
 
