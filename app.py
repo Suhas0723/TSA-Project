@@ -16,6 +16,7 @@ app.secret_key = authfile['flask']['secretKey']
 
 firebase_config = authfile.get('firebase', {})
 
+
 cred = credentials.Certificate("tsa-agriculture-app-firebase-adminsdk-4jash-f87e772be9.json")
 firebase = firebase_admin.initialize_app(cred)
 db = firestore.client()
@@ -208,6 +209,9 @@ def index():
     except Exception as e:
         return f"Error: {str(e)}", 500
 
+@app.route('/water-usage')
+def water_usage():
+    return render_template('water_usage1.html')
 
 @app.route('/chatbot', methods=['GET'])
 def chatbot_page():

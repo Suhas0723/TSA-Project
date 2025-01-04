@@ -41,6 +41,14 @@ signupBtn.addEventListener('click', () => {
   const username = document.querySelector('#username').value;
   const email = document.querySelector('#email').value.trim();
   const password = document.querySelector('#password').value;
+  const address = {
+    line1: document.getElementById('line1').value,
+    line2: document.getElementById('line2').value,
+    city: document.getElementById('city').value,
+    state: document.getElementById('state').value,
+    zip: document.getElementById('zip').value,
+    country: document.getElementById('country').value,
+  };
   auth.createUserWithEmailAndPassword(email, password)
     .then((userCredential) => {
       const user = userCredential.user;
@@ -57,6 +65,7 @@ signupBtn.addEventListener('click', () => {
           name: name,
           username: username,
           email: email,
+          address: address,
       })
       fetch('/api/create_user', {
         method: 'POST',
@@ -68,6 +77,7 @@ signupBtn.addEventListener('click', () => {
           name: name,
           username: username,
           email: email,
+          address: address,
         }),
       })
         .then((response) => {
@@ -148,13 +158,4 @@ forgotBtn.addEventListener('click', () => {
     alert('Error sending password reset email: ' + error.message);
   });
   }
-});
-document.getElementById('logout-btn').addEventListener('click', function(event) {
-    event.preventDefault();  // Prevent the default action
-    auth.signOut().then(() => {
-        console.log("User signed out");
-        window.location.href = "/signup";  // Redirect to the login page
-    }).catch((error) => {
-        console.error("Error signing out: ", error);
-    });
 });
