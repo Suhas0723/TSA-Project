@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>AgroAssistant</title>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Sidebar Section -->
+        <aside>
+            <div class="toggle">
+                <div class="logo">
+                    <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}" style="width: 25px; height: 25px">
+                    <h2>Agro<span class="success">Assistant</span></h2>
+                </div>
+                <div class="close" id="close-btn">
+                    <span class="material-icons-sharp">
+                        close
+                    </span>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <a href="/">
+                    <span class="material-icons-sharp">
+                        dashboard
+                    </span>
+                    <h3>Dashboard</h3>
+                </a>
+                <a href="/crops">
+                    <span class="material-icons-sharp">
+                        yard
+                    </span>
+                    <h3>Crops</h3>
+                </a>
+                <a href="/water-usage">
+                    <span class="material-icons-sharp">
+                        water_drop
+                    </span>
+                    <h3>Water Usage</h3>
+                </a>
+                <a href="/chatbot">
+                    <span class="material-icons-sharp">
+                        forum
+                    </span>
+                    <h3>AgriAI</h3>
+                </a>
+                <a href="{{ url_for('logout') }}" id="logout-btn">
+                    <span class="material-icons-sharp">
+                        logout
+                    </span>
+                    <h3>Logout</h3>
+                </a>
+            </div>
+        </aside>
+        <!-- End of Sidebar Section -->
+
+        <!-- Main Content -->
+        <main>
+            <h1>Water Usage</h1>
+
+            <!-- Top Section -->
+            <div class="analyse">
+                <div class="moisture">
+                    <img src="{{ url_for('static', filename='crop-image.jpg') }}" alt="Current Crop Image">
+                    <h2>Current Crop: Wheat</h2>
+                    <p>Growing Conditions: Good</p>
+                </div>
+
+                <div class=".temperature">
+                    <h3>Water Efficiency</h3>
+                    <p>Efficient irrigation methods and crop care reduce water usage and improve yield.</p>
+                </div>
+
+                <div class=".pH">
+                    <h3>Water Costs</h3>
+                    <p>Monthly water costs based on current consumption and rates.</p>
+                </div>
+
+                <div class=".pH">
+                    <h3>Crop Status</h3>
+                    <p>Current health: Healthy, Soil condition: Optimal, Expected harvest: 10 weeks.</p>
+                </div>
+            </div>
+            <!-- End of Top Section -->
+
+            <!-- Data Visualizations Section -->
+            <div class="data-visualizations">
+                <div class="line-graph">
+                    <h3>Past Water Data</h3>
+                    <div class="graph-placeholder">[Line Graph Placeholder]</div>
+                </div>
+
+                <div class="pie-chart">
+                    <h3>Water Distribution by Crop</h3>
+                    <div class="chart-placeholder">[Pie Chart Placeholder]</div>
+                </div>
+
+                <div class="calendar">
+                    <h3>Irrigation Calendar</h3>
+                    <div class="calendar-placeholder">[Calendar with Highlighted Dates Placeholder]</div>
+                </div>
+            </div>
+            <!-- End of Data Visualizations Section -->
+
+            <!-- Right Section: Irrigation Details -->
+            <div class="right-section">
+                
+                    <h3>Irrigation</h3>
+                    <div class="user-profile">
+                        <label for="water-output-rate">Total Water Output Rate</label>
+                        <input type="text" id="water-output-rate" placeholder="Enter Output Rate">
+                    </div>
+
+                    <div class="user-profile">
+                        <label for="field-area">Area of Field (m²)</label>
+                        <input type="text" id="field-area" placeholder="Enter Field Area">
+                    </div>
+
+                    <div class="user-profile">
+                        <label for="avg-crop-density">Average Crop Density</label>
+                        <input type="text" id="avg-crop-density" placeholder="Enter Crop Density">
+                    </div>
+
+                    <!-- Add New Irrigation Form -->
+                    <div class="reminders">
+                        <h3>Add New Irrigation</h3>
+                        <label for="irrigation-time">Irrigation Time</label>
+                        <input type="time" id="irrigation-time">
+
+                        <label for="irrigation-output">Water Output (m³)</label>
+                        <input type="number" id="irrigation-output">
+
+                        <button type="submit" id="submit-irrigation">Submit</button>
+                    </div>
+
+                    <!-- Recent Irrigations Table -->
+                    <div class="notification add-reminder">
+                        <h3>Top 5 Recent Irrigations</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Water Output (m³)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2025-01-01</td>
+                                    <td>09:00 AM</td>
+                                    <td>120</td>
+                                </tr>
+                                <tr>
+                                    <td>2025-01-02</td>
+                                    <td>10:30 AM</td>
+                                    <td>130</td>
+                                </tr>
+                                <tr>
+                                    <td>2025-01-03</td>
+                                    <td>02:00 PM</td>
+                                    <td>110</td>
+                                </tr>
+                                <tr>
+                                    <td>2025-01-04</td>
+                                    <td>08:15 AM</td>
+                                    <td>125</td>
+                                </tr>
+                                <tr>
+                                    <td>2025-01-05</td>
+                                    <td>11:00 AM</td>
+                                    <td>140</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                
+            </div>
+            <!-- End of Right Section -->
+
+        </main>
+        <!-- End of Main Content -->
+
+    </div>
+
+    <script src="{{ url_for('static', filename='orders.js') }}"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+</body>
+
+</html>

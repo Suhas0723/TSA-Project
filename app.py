@@ -16,13 +16,13 @@ db = firestore.client()
 with open('auth.yaml', 'r') as file:
     authfile = yaml.safe_load(file)
 
-secret_key = authfile['flask']['secretKey']
+app.secret_key = authfile['flask']['secretKey']
 
 firebase_config = authfile.get('firebase', {})
 
 #Suhas nga replace this path with ur own path once I send you the json file, dont keep it in project folder for security reasons
-cred = credentials.Certificate("/Users/rajaselvamjayakumar/Downloads/tsa-agriculture-app-firebase-adminsdk-4jash-f87e772be9.json")
-app = firebase_admin.initialize_app(cred)
+# cred = credentials.Certificate("/Users/rajaselvamjayakumar/Downloads/tsa-agriculture-app-firebase-adminsdk-4jash-f87e772be9.json")
+# app = firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 api_usage = {
@@ -172,6 +172,9 @@ def index():
     except Exception as e:
         return f"Error: {str(e)}", 500
 
+@app.route('/water-usage')
+def water_usage():
+    return render_template('water_usage1.html')
 
 @app.route('/chatbot', methods=['GET'])
 def chatbot_page():

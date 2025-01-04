@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.js"></script>
+    <title>Responsive Dashboard Design #1 | AsmrProg</title>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Sidebar Section -->
+        <aside>
+            <div class="toggle">
+                <div class="logo">
+                    <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}" style="width: 25px; height: 25px">
+                    <h2>Agro<span class="success">Assistant</span></h2>
+                </div>
+                <div class="close" id="close-btn">
+                    <span class="material-icons-sharp">
+                        close
+                    </span>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <a href="/">
+                    <span class="material-icons-sharp">
+                        dashboard
+                    </span>
+                    <h3>Dashboard</h3>
+                </a>
+                <a href="/crops">
+                    <span class="material-icons-sharp">
+                        yard
+                    </span>
+                    <h3>Crops</h3>
+                </a>
+                <a href="/water-usage">
+                    <span class="material-icons-sharp">
+                        water_drop
+                    </span>
+                    <h3>Water Usage</h3>
+                </a>
+                <a href="/chatbot">
+                    <span class="material-icons-sharp">
+                        forum
+                    </span>
+                    <h3>AgriAI</h3>
+                </a>
+                <a href="{{ url_for('logout') }}" id="logout-btn">
+                    <span class="material-icons-sharp">
+                        logout
+                    </span>
+                    <h3>Logout</h3>
+                </a>
+            </div>
+        </aside>
+        <!-- End of Sidebar Section -->
+
+        <!-- Main Content -->
+        <main>
+            <h1>Water Usage</h1>
+            <h2>Current Crop: Corn</h2>
+            <!-- Analyses -->
+            <div class="analyse">
+                <div class="sales">
+                    <div class="status">
+                        <div class="info">
+                            <h3>Water Cost</h3>
+                            <h1>$9999</h1>
+                        </div>
+                        <div class="progresss">
+                            <svg>
+                                <circle cx="38" cy="38" r="36"></circle>
+                            </svg>
+                            <!-- <div class="percentage">
+                                <p>+81%</p>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="visits">
+                    <div class="status">
+                        <div class="info">
+                            <h3>Water Usage Rate</h3>
+                            <h1>24,981</h1>
+                        </div>
+                        <div class="progresss">
+                            <svg>
+                                <circle cx="38" cy="38" r="36"></circle>
+                            </svg>
+                            <!-- <div class="percentage">
+                                <p>-48%</p>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="searches">
+                    <div class="status">
+                        <div class="info">
+                            <h3>Water Efficiency</h3>
+                            <h1>14,147</h1>
+                        </div>
+                        <div class="progresss">
+                            <svg>
+                                <circle cx="38" cy="38" r="36"></circle>
+                            </svg>
+                            <!-- <div class="percentage">
+                                <p>+21%</p>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of Analyses -->
+
+            <!-- Parent Container for side-by-side layout -->
+            <div style="display: flex; justify-content: space-between; gap: 2rem;">
+                <!-- New Users Section 1 (Water Usage Data) -->
+                <div class="new-users" style="width: 50%;">
+                    <h2>Water Usage Data</h2>
+                    <div class="user-list">
+                        <canvas id="irrigationChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+                <!-- End of New Users Section 1 -->
+
+                <!-- New Users Section 2 (Calendar) -->
+                <div class="new-users" style="width: 50%;">
+                    <h2>Water Usage Data</h2>
+                    <div class="user-list">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+                <!-- End of New Users Section 2 -->
+            </div>
+
+        </main>
+        <!-- End of Main Content -->
+
+        <!-- Right Section -->
+        <div class="right-section">
+            <div class="nav">
+                <button id="menu-btn">
+                    <span class="material-icons-sharp">
+                        menu
+                    </span>
+                </button>
+                <div class="dark-mode">
+                    <span class="material-icons-sharp active">
+                        light_mode
+                    </span>
+                    <span class="material-icons-sharp">
+                        dark_mode
+                    </span>
+                </div>
+
+                <div class="profile">
+                    <div class="info">
+                        <p>Hey, <b>Reza</b></p>
+                        <small class="text-muted">Admin</small>
+                    </div>
+                    <div class="profile-photo">
+                        <img src="images/profile-1.jpg">
+                    </div>
+                </div>
+
+            </div>
+            <!-- End of Nav -->
+
+            <div class="user-profile">
+                <div class="logo">
+                    <h3>Irrigation</h3>
+                    <div class="water-output-rate">
+                        <label for="water-output-rate">Total Water Output Rate</label>
+                        <input type="text" id="water-output-rate" placeholder="Enter Output Rate">
+                    </div>
+            
+                    <div class="field-area">
+                        <label for="field-area">Area of Field (m²)</label>
+                        <input type="text" id="field-area" placeholder="Enter Field Area">
+                    </div>
+            
+                    <div class="avg-crop-density">
+                        <label for="avg-crop-density">Average Crop Density</label>
+                        <input type="text" id="avg-crop-density" placeholder="Enter Crop Density">
+                    </div>
+            
+                    <button class="update-btn" style="display: none;">Update</button> <!-- Update Button initially hidden -->
+                </div>
+            </div>
+
+            <div class="reminders">
+                <div class="header">
+                    <h2>Scheduled Irrigations</h2>
+                    <span class="material-icons-sharp">
+                        notifications_none
+                    </span>
+                </div>
+            
+                <!-- New Irrigation Button -->
+                <div class="notification add-reminder" id="new-irrigation-btn">
+                    <div>
+                        <span class="material-icons-sharp">
+                            add
+                        </span>
+                        <h3>New Irrigation</h3>
+                    </div>
+                </div>
+            
+                <!-- Irrigation Form (hidden initially) -->
+                <div class="notification add-reminder form-container" id="irrigation-form" style="display: none;">
+                    <form id="irrigation-form-data">
+                        <label for="irrigation-date">Irrigation Date</label>
+                        <input type="date" id="irrigation-date" required>
+            
+                        <label for="irrigation-duration">Irrigation Duration (hrs)</label>
+                        <input type="number" id="irrigation-duration" required min="1">
+            
+                        <button type="submit" class="save-btn">Save</button>
+                    </form>
+                </div>
+            
+                <!-- Sample Irrigation Cards (past irrigations) -->
+                <div class="notification">
+                    <div class="icon">
+                        <span class="material-icons-sharp">
+                            water_drop
+                        </span>
+                    </div>
+                    <div class="content">
+                        <div class="info">
+                            <h3>Past Irrigation #1</h3>
+                            <small class="text_muted">
+                                2025-01-01, 08:00 AM - 10:00 AM
+                            </small>
+                        </div>
+                        <span class="material-icons-sharp">
+                            more_vert
+                        </span>
+                    </div>
+                </div>
+            
+                <div class="notification">
+                    <div class="icon">
+                        <span class="material-icons-sharp">
+                            water_drop
+                        </span>
+                    </div>
+                    <div class="content">
+                        <div class="info">
+                            <h3>Past Irrigation #2</h3>
+                            <small class="text_muted">
+                                2025-01-02, 09:00 AM - 11:00 AM
+                            </small>
+                        </div>
+                        <span class="material-icons-sharp">
+                            more_vert
+                        </span>
+                    </div>
+                </div>
+            
+                <div class="notification">
+                    <div class="icon">
+                        <span class="material-icons-sharp">
+                            water_drop
+                        </span>
+                    </div>
+                    <div class="content">
+                        <div class="info">
+                            <h3>Past Irrigation #3</h3>
+                            <small class="text_muted">
+                                2025-01-03, 07:00 AM - 09:00 AM
+                            </small>
+                        </div>
+                        <span class="material-icons-sharp">
+                            more_vert
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+
+    <script src="{{ url_for('static', filename='orders.js') }}"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+    
+</body>
+
+</html>
+
+<script>
+    var ctx = document.getElementById('irrigationChart').getContext('2d');
+    var irrigationChart = new Chart(ctx, {
+        type: 'line', // You can change this to 'bar' if you prefer bar chart
+        data: {
+            labels: ['2025-01-01', '2025-01-02', '2025-01-03', '2025-01-04', '2025-01-05'], // Dates on the x-axis
+            datasets: [{
+                label: 'Water Output (m³)',
+                data: [120, 130, 110, 125, 140], // Water output data
+                fill: false,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'category', // Ensure x-axis is treated as categories (dates)
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Water Output (m³)'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        // Define your irrigation data (dates and water amounts)
+        var irrigationData = [
+            { date: '2025-01-01', waterAmount: 120 },
+            { date: '2025-01-02', waterAmount: 130 },
+            { date: '2025-01-03', waterAmount: 110 },
+            { date: '2025-01-04', waterAmount: 125 },
+            { date: '2025-01-05', waterAmount: 140 }
+        ];
+
+        // Map irrigation data to FullCalendar event format
+        var events = irrigationData.map(function(item) {
+            var opacity = Math.min(1, item.waterAmount / 150); // Set maximum opacity limit
+            return {
+                title: 'Irrigation',
+                start: item.date,
+                rendering: 'background',
+                backgroundColor: `rgba(75, 192, 192, ${opacity})`, // Use waterAmount to adjust opacity
+                borderColor: 'rgba(75, 192, 192, 1)'
+            };
+        });
+
+        // Initialize the calendar
+        $('#calendar').fullCalendar({
+            events: events,
+            eventColor: '#ff9f89', // Color of event highlights
+            eventRender: function(event, element) {
+                // Optionally, add more custom styling for the events
+                element.css('opacity', event.backgroundColor);
+            }
+        });
+    });
+</script>
+
+<style>
+    /* General Style for User Profile */
+.user-profile {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem;
+}
+
+.logo {
+    text-align: center;
+    width: 100%;
+    max-width: 350px; /* Reduced max width */
+}
+
+.logo img {
+    width: 80px; /* Smaller logo size */
+    margin-bottom: 1rem;
+}
+
+.logo h3 {
+    font-size: 1.2rem; /* Reduced font size */
+    color: #388e3c;
+    margin-bottom: 1rem; /* Reduced margin */
+}
+
+/* Style for Input Fields */
+.logo input {
+    width: 100%;
+    padding: 0.6rem; /* Reduced padding */
+    margin: 0.4rem 0; /* Reduced margin */
+    border: 2px solid #388e3c;
+    border-radius: 6px; /* Smaller border radius */
+    font-size: 0.9rem; /* Reduced font size */
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.logo input::placeholder {
+    color: #388e3c;
+    font-style: italic;
+}
+
+/* Hover Effect on Input Fields */
+.logo input:hover {
+    border-color: #66bb6a;
+}
+
+/* Input Focus Style */
+.logo input:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+}
+
+/* Label Styling */
+.logo label {
+    display: block;
+    font-size: 0.9rem; /* Smaller font size */
+    color: #388e3c;
+    margin-bottom: 0.3rem; /* Reduced margin */
+    text-align: left;
+}
+
+/* Styling for the update button */
+.update-btn {
+    padding: 0.8rem 1.6rem;
+    background-color: #388e3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 1rem;
+    display: none; /* Initially hidden */
+}
+
+.update-btn:hover {
+    background-color: #66bb6a;
+}
+
+/* Additional Styling for Section */
+.water-output-rate,
+.field-area,
+.avg-crop-density {
+    margin-bottom: 0.8rem; /* Reduced margin */
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 600px) {
+    .logo {
+        max-width: 90%;
+        padding: 1.5rem;
+    }
+
+    .logo h3 {
+        font-size: 1rem;
+    }
+
+    .logo input {
+        font-size: 0.85rem;
+    }
+
+    .update-btn {
+        padding: 0.5rem 1rem; /* Adjust button padding */
+    }
+}
+
+/* Style for the New Irrigation Button */
+.add-reminder {
+    cursor: pointer;
+    padding: 1rem;
+    background-color: #388e3c;
+    color: white;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.add-reminder:hover {
+    background-color: #66bb6a;
+}
+
+.add-reminder h3 {
+    margin: 0;
+}
+
+/* Style for Irrigation Form */
+.form-container {
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.form-container input {
+    width: 100%;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    border-radius: 6px;
+    border: 2px solid #388e3c;
+    font-size: 1rem;
+}
+
+.form-container button {
+    padding: 0.8rem 2rem;
+    background-color: #388e3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.form-container button:hover {
+    background-color: #66bb6a;
+}
+
+/* Past Irrigation Card Styling */
+.notification {
+    background-color: #e0f7fa;
+    margin-top: 1rem;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+}
+
+.notification .icon {
+    font-size: 2rem;
+    color: #388e3c;
+}
+
+.notification .content {
+    flex-grow: 1;
+    margin-left: 1rem;
+}
+
+.notification .content .info h3 {
+    font-size: 1rem;
+    color: #388e3c;
+    margin: 0;
+}
+
+.notification .content .info small {
+    font-size: 0.9rem;
+    color: #8e8e8e;
+}
+
+/* Small icons (optional) */
+.material-icons-sharp {
+    font-size: 1.5rem;
+}
+</style>
+
+<script>
+    // Toggle between "New Irrigation" button and form
+const newIrrigationBtn = document.getElementById('new-irrigation-btn');
+const irrigationForm = document.getElementById('irrigation-form');
+
+newIrrigationBtn.addEventListener('click', () => {
+    // Hide the new irrigation button
+    newIrrigationBtn.style.display = 'none';
+    
+    // Show the irrigation form
+    irrigationForm.style.display = 'block';
+});
+
+// Handle form submission (save action)
+const irrigationFormData = document.getElementById('irrigation-form-data');
+irrigationFormData.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Logic to save the irrigation data (could be done with backend API or local storage)
+    
+    // After saving, revert back to the "New Irrigation" button
+    newIrrigationBtn.style.display = 'block';
+    irrigationForm.style.display = 'none';
+    
+    // Optionally, show the newly added irrigation in the scheduled list
+    // You could also dynamically add the new irrigation to the past irrigation cards here.
+});
+
+// Get the input fields and the update button
+const inputs = document.querySelectorAll('.user-profile input');
+const updateButton = document.querySelector('.update-btn');
+
+// Function to show the Update button when an input field is modified
+inputs.forEach(input => {
+    input.addEventListener('focus', () => {
+        // Show the update button when an input field is focused
+        updateButton.style.display = 'block';
+    });
+
+    input.addEventListener('input', () => {
+        // Show the update button when the user types or changes the input
+        updateButton.style.display = 'block';
+    });
+});
+
+// When the Update button is clicked, hide it again
+updateButton.addEventListener('click', () => {
+    updateButton.style.display = 'none';
+
+    // Optionally, you can perform any additional logic when the update button is clicked
+    // For example, you can save the updated values, or send them to a backend.
+});
+</script>

@@ -10,7 +10,10 @@
 </head>
 <body>
   <div class="container">
-    <input type="checkbox" id="check">
+    <div class="logo">
+      <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}" alt="Logo">
+      <h1>AgroAssistant</h1>
+    </div>
     <div class="login form">
       <header>Login</header>
       <form action="#">
@@ -34,6 +37,24 @@
         <input type="text" id='username' placeholder="Enter your username">
         <input type="text" id='email' placeholder="Enter your email">
         <input type="password" id='password' placeholder="Create a password">
+        <div class="form-group">
+          <input type="text" id="line1" name="line1" placeholder="Address Line 1" required>
+        </div>
+        <div class="form-group">
+          <input type="text" id="line2" name="line2" placeholder="Address Line 2 (Optional)">
+        </div>
+        <div class="form-group">
+          <input type="text" id="city" name="city" placeholder="City" required>
+        </div>
+        <div class="form-group">
+          <input type="text" id="state" name="state" placeholder="State/Province" required>
+        </div>
+        <div class="form-group">
+          <input type="text" id="zip" name="zip" placeholder="Zip/Postal Code" required>
+        </div>
+        <div class="form-group">
+          <input type="text" id="country" name="country" placeholder="Country" required>
+        </div>
         <input type="button" class="button signupbtn" value="Signup">
       </form>
       <div class="signup">
@@ -42,7 +63,7 @@
         </span>
       </div>
     </div>
-    <div class="forgot form" >
+    <div class="forgot form">
       <header>Forgot Password</header>
       <form action="#">
         <input type="text" id='forgotinp' placeholder="Enter your email">
@@ -61,8 +82,108 @@
     </div>
   </div>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="{{ url_for('static', filename='page0.js') }}" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="{{ url_for('static', filename='page0.js') }}" type="module"></script>
 </body>
 </html>
+
+<style>
+ /* General Styling */
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(to bottom, #d8f3dc, #95d5b2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  background-color: #ffffff;
+  border-radius: 20px; /* Increased border-radius for rounded corners */
+  padding: 2rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.logo {
+  margin-bottom: 2rem;
+}
+
+.logo img {
+  width: 150px; /* Adjust width */
+  height: auto; /* Maintain aspect ratio */
+}
+
+@media screen and (max-width: 768px) {
+  .logo img {
+    width: 120px; /* Smaller size for smaller screens */
+  }
+}
+
+.logo h1 {
+  font-size: 1.8rem;
+  color: #388e3c;
+  margin-bottom: 1rem;
+}
+
+/* Form Styling */
+form {
+  margin-top: 1rem;
+}
+
+input {
+  display: block;
+  width: 100%;
+  padding: 0.8rem 1rem; /* Added padding on the right */
+  margin: 0.5rem 0;
+  border: 1px solid #d1d1d1;
+  border-radius: 10px; /* Increased border-radius for rounded corners */
+  box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+input:focus {
+  outline: none;
+  border-color: #388e3c;
+}
+
+.button {
+  background-color: #388e3c;
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 10px; /* Increased border-radius for rounded corners */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #66bb6a;
+}
+
+header {
+  font-size: 1.5rem;
+  color: #388e3c;
+  margin-bottom: 1rem;
+}
+
+/* Signup Link Styling */
+.signup {
+  margin-top: 1rem;
+}
+
+.signup a {
+  color: #388e3c;
+  text-decoration: none;
+}
+
+.signup a:hover {
+  text-decoration: underline;
+}
+
+
+</style>
