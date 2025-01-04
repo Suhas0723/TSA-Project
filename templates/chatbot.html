@@ -6,29 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>AgriBot - AI Chatbot</title>
+    <title>AgroAssistant</title>
 </head>
 
 <body>
     <div class="container">
-        <!-- Sidebar Section -->
         <aside>
             <div class="toggle">
                 <div class="logo">
-                    <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}" style="width: 25px; height: 25px">
+                    <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}"
+                        style="width: 25px; height: 25px">
                     <h2>Agro<span class="success">Assistant</span></h2>
                 </div>
-                <div class="close" id="close-btn">
-                    <span class="material-icons-sharp">close</span>
-                </div>
             </div>
-
             <div class="sidebar">
                 <a href="/">
                     <span class="material-icons-sharp">dashboard</span>
                     <h3>Dashboard</h3>
                 </a>
-                <a href="/crops">
+                <a href="/crops/show-crops">
                     <span class="material-icons-sharp">yard</span>
                     <h3>Crops</h3>
                 </a>
@@ -40,106 +36,98 @@
                     <span class="material-icons-sharp">forum</span>
                     <h3>AgriBot</h3>
                 </a>
-                <a href="#">
+                <a href="/logout">
                     <span class="material-icons-sharp">logout</span>
                     <h3>Logout</h3>
                 </a>
             </div>
+            <div class="agriculture-links">
+                <h3>Helpful Websites</h3>
+                <ul>
+                    <li><a href="https://www.usda.gov" target="_blank">USDA - United States Department of Agriculture</a></li>
+                    <li><a href="https://www.fao.org" target="_blank">FAO - Food and Agriculture Organization</a></li>
+                    <li><a href="https://www.nass.usda.gov" target="_blank">NASS - National Agricultural Statistics Service</a></li>
+                    <li><a href="https://www.agriculture.com" target="_blank">Agriculture.com</a></li>
+                    <li><a href="https://www.cdfa.ca.gov" target="_blank">CDFA - California Department of Food and Agriculture</a></li>
+                </ul>
+            </div>
         </aside>
-        <!-- End of Sidebar Section -->
 
-        <!-- Main Content -->
         <main>
             <h1>AgriBot - AI Chatbot</h1>
             <div class="chat-container">
                 <div class="chat-box" id="chat-box">
-                    <!-- Chat messages will appear here -->
                 </div>
                 <div class="chat-input">
                     <form id="chat-form">
-                        <input 
-                          type="text" 
-                          id="question" 
-                          name="question" 
-                          placeholder="Ask AgriBot about agriculture..." 
-                        />
+                        <input type="text" id="question" name="question"
+                            placeholder="Ask AgriBot about agriculture..." />
                         <button type="submit">
-                          <span class="material-icons-sharp">send</span>
+                            <span class="material-icons-sharp">send</span>
                         </button>
-                      </form>
-                      <button type="button" class="btn-danger" id="close-btn" onclick="clearText()">
-                        <span class="material-icons-sharp">close</span>   
-                      </button>              
+                    </form>
+                    <button type="button" class="btn-danger" id="clear-btn" onclick="clearText()">
+                        <span class="material-icons-sharp">close</span>
+                    </button>
                 </div>
             </div>
-        </main>        
-        <!-- End of Main Content -->
+        </main>
+        <div class="right-section">
+            <div class="nav">
+                <button id="menu-btn">
+                    <span class="material-icons-sharp">
+                        menu
+                    </span>
+                </button>
+                <div class="dark-mode">
+                    <span class="material-icons-sharp active">
+                        light_mode
+                    </span>
+                    <span class="material-icons-sharp">
+                        dark_mode
+                    </span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const closeBtn = document.getElementById('close-btn');
+        const clearBtn = document.getElementById('clear-btn');
         const chatForm = document.getElementById('chat-form');
-        const chatBox  = document.getElementById('chat-box');
+        const chatBox = document.getElementById('chat-box');
 
         function clearText() {
             document.getElementById('chat-box').innerHTML = '';
         }
-        // document.addEventListener('DOMContentLoaded', () => {
-        //     console.log('DOM fully loaded, setting up event listeners...');
-
-        //     // Grab the close button by its ID
-        //     const closeBtn = document.getElementById('close-btn');
-        //     console.log('closeBtn is:', closeBtn);  // Check if it's null or not
-
-        //     // Safety check: if closeBtn is null, it means we didn't find the element
-        //     if (!closeBtn) {
-        //         console.error('Close button not found in DOM!');
-        //         return;
-        //     }
-
-        //     // Add the click event listener
-        //     closeBtn.addEventListener('click', () => {
-        //         console.log('Close button clicked!');
-                
-        //         // Example: Clear out the chat box
-        //         const chatBox = document.getElementById('chat-box');
-        //         chatBox.innerHTML = '<div class="chat-box" id="chat-box"></div>';
-        //     });
-        // });
-                // Listen for form submit
         chatForm.addEventListener('submit', (e) => {
-          e.preventDefault(); // Stop normal form submission (no page reload)
-    
-          const userInput = document.getElementById('question');
-          const questionText = userInput.value.trim();
-    
-          if (!questionText) return; // Nothing typed?
-    
-          // Display the user's question (in the chat box, for example)
-          addMessage('You', questionText);
-    
-          // Clear the input
-          userInput.value = '';
-    
-          // Send question to Flask as JSON
-          fetch('/chatbot', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: questionText })
-          })
-          .then(response => response.json())
-          .then(data => {
-            // data.response is what we got from Flask
-            addMessage('AgriBot', data.response);
-          })
-          .catch(err => console.error('Error:', err));
+            e.preventDefault();
+
+            const userInput = document.getElementById('question');
+            const questionText = userInput.value.trim();
+
+            if (!questionText) return;
+
+            addMessage('You', questionText);
+
+            userInput.value = '';
+
+            fetch('/chatbot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: questionText })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    addMessage('AgriBot', data.response);
+                })
+                .catch(err => console.error('Error:', err));
         });
-    
+
         function addMessage(sender, text) {
-          const msg = document.createElement('div');
-          msg.innerHTML = `<b>${sender}:</b> ${text}`;
-          chatBox.appendChild(msg);
-          chatBox.scrollTop = chatBox.scrollHeight; // auto-scroll
+            const msg = document.createElement('div');
+            msg.innerHTML = `<b>${sender}:</b> ${text}`;
+            chatBox.appendChild(msg);
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
     </script>
 
@@ -152,6 +140,7 @@
             height: 100vh;
             text-align: center;
         }
+
         .chat-container {
             display: flex;
             flex-direction: column;
@@ -173,6 +162,7 @@
             background-color: var(--color-background);
             border-radius: var(--border-radius-2);
         }
+
         .chat-input {
             display: flex;
             gap: 0.5rem;
@@ -190,6 +180,7 @@
             padding: 0.8rem;
             border-radius: var(--border-radius-2);
             border: 1px solid var(--color-light);
+            background-color: var(--form-background);
         }
 
         .chat-input button {
@@ -208,7 +199,11 @@
         .message {
             margin: 0.5rem 0;
         }
+        
+
+        
     </style>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
 </body>
 
 </html>

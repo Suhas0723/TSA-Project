@@ -7,6 +7,9 @@ weatherapi:
 openAI:
   apiKey: fixme
 
+plantApi:
+  apiKey: fixme
+
 firebase:
   apiKey: fixme
   authDomain: fixme
