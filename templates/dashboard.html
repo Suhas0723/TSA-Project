@@ -12,17 +12,11 @@
 <body>
 
     <div class="container">
-        <!-- Sidebar Section -->
         <aside>
             <div class="toggle">
                 <div class="logo">
                     <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}" style="width: 25px; height: 25px">
                     <h2>Agro<span class="success">Assistant</span></h2>
-                </div>
-                <div class="close" id="close-btn">
-                    <span class="material-icons-sharp">
-                        close
-                    </span>
                 </div>
             </div>
 
@@ -33,7 +27,7 @@
                     </span>
                     <h3>Dashboard</h3>
                 </a>
-                <a href="/crops">
+                <a href="/crops/show-crops">
                     <span class="material-icons-sharp">
                         yard
                     </span>
@@ -59,12 +53,9 @@
                 </a>
             </div>
         </aside>
-        <!-- End of Sidebar Section -->
 
-        <!-- Main Content -->
         <main>
             <h1>Dashboard</h1>
-            <!-- Analyses -->
             <div class="analyse">
                 <div class="moisture">
                     <div class="status">
@@ -121,9 +112,7 @@
                     </div>
                 </div>
             </div>
-            <!-- End of Analyses -->
 
-            <!-- New Users Section -->
             <div class="new-users">
                 <h2>New Users</h2>
                 <div class="user-list">
@@ -149,9 +138,7 @@
                     </div>
                 </div>
             </div>
-            <!-- End of New Users Section -->
 
-            <!-- Recent Orders Table -->
             <div class="recent-orders">
                 <h2>3-Day Weather Forecast</h2>
                 <table>
@@ -176,12 +163,9 @@
                 </table>
 
             </div>
-            <!-- End of Recent Orders -->
 
         </main>
-        <!-- End of Main Content -->
 
-        <!-- Right Section -->
         <div class="right-section">
             <div class="nav">
                 <button id="menu-btn">
@@ -205,12 +189,11 @@
                 </div>
 
             </div>
-            <!-- End of Nav -->
 
             <div class="user-profile">
                 <div class="logo">
                     <h2>AgriAI</h2>
-                    <a href="#">Talk to AgriAI to learn more plant care tips!</a>
+                    <a href="/chatbot">Talk to AgriAI to learn more plant care tips!</a>
                 </div>
             </div>
 
@@ -231,7 +214,6 @@
 
     </div>
 
-    <script src="{{ url_for('static', filename='orders.js') }}"></script>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
 </body>
 

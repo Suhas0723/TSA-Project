@@ -67,8 +67,6 @@ signupBtn.addEventListener('click', () => {
           email: email,
           address: address,
       })
-
-      // Send user data to Flask backend
       fetch('/api/create_user', {
         method: 'POST',
         headers: {
@@ -113,7 +111,6 @@ loginBtn.addEventListener('click', () => {
       const user = userCredential.user;
       if (user.emailVerified) {
         console.log('User is signed in with a verified email.');
-        // Send user data to Flask backend
         fetch('/api/login_user', {
             method: 'POST',
             headers: {
@@ -133,8 +130,7 @@ loginBtn.addEventListener('click', () => {
             })
             .then((data) => {
               console.log('Login data sent to Flask backend:', data);
-              // Redirect to another page after successful login
-              location.href = "/"; // Replace with your desired route
+              location.href = "/"; 
             })
             .catch((error) => {
               console.error('Error logging in on the backend:', error.message);

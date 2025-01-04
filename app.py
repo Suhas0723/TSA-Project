@@ -4,14 +4,10 @@ from openai import OpenAI
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import yaml
 import requests
-from models import User
 import firebase_admin
-from firebase_admin import credentials, auth, firestore
-import secrets
+from firebase_admin import credentials,  firestore
 
 app = Flask(__name__)
-firebase = firebase_admin.initialize_app()
-db = firestore.client()
 
 with open('auth.yaml', 'r') as file:
     authfile = yaml.safe_load(file)
@@ -20,9 +16,9 @@ app.secret_key = authfile['flask']['secretKey']
 
 firebase_config = authfile.get('firebase', {})
 
-#Suhas nga replace this path with ur own path once I send you the json file, dont keep it in project folder for security reasons
-# cred = credentials.Certificate("/Users/rajaselvamjayakumar/Downloads/tsa-agriculture-app-firebase-adminsdk-4jash-f87e772be9.json")
-# app = firebase_admin.initialize_app(cred)
+
+cred = credentials.Certificate("tsa-agriculture-app-firebase-adminsdk-4jash-f87e772be9.json")
+firebase = firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 api_usage = {
@@ -72,7 +68,7 @@ def get_weatherapi_averages():
         params={
             'key': authfile['weatherapi']['apiKey'],
             'q': 'Atlanta',
-            'days': 10
+            'days': 3
         }
     )
     weather_data = weatherapi_response.json()  
@@ -109,7 +105,6 @@ def get_weatherapi_averages():
     return {"daily_averages": daily_averages}
 
 def chatbot_request(question):
-    print(question)
     client = OpenAI(api_key=authfile['openAI']['apiKey'])
     instructions =  """
         You are AgriBot, an AI chatbot designed to serve only as an agricultural assistant. You can provide expert answers, guidance, and data related to agriculture, including:
@@ -136,6 +131,48 @@ def chatbot_request(question):
     response = dict(completion.choices[0].message)
     response = response['content']
     return response
+
+def get_plant(plant_id):
+    base_url = f"https://trefle.io/api/v1/plants/{plant_id}"
+    headers = {
+        "Authorization": f"Bearer {authfile['plantApi']['apiKey']}"
+    }
+    try:
+        response = requests.get(base_url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
+
+
+def plant_to_db(plant_data, uid):
+    try:
+        plant_data = dict(plant_data)
+
+        print("Plant Data Received:", plant_data)
+
+        data_section = plant_data.get("data", {})
+        if not isinstance(data_section, dict):
+            raise ValueError("The 'data' field is missing or not a dictionary.")
+        
+        slug = data_section.get("slug")
+        if not slug or not isinstance(slug, str):
+            raise ValueError("The 'slug' field is missing, empty, or not a string in the 'data' section.")
+
+        if not uid or not isinstance(uid, str):
+            raise ValueError("The 'uid' is missing, empty, or not a string.")
+
+        doc_name = f"{slug}-{uid}"
+
+        print(f"Slug: {slug}, UID: {uid}, Document Name: {doc_name}")
+
+        db.collection('plant_data').document(doc_name).set(plant_data)
+        print("Data successfully stored in Firestore.")
+
+    except Exception as e:
+        print(f"Error in plant_to_db: {e}")
+        raise
+
 
 
 def api_to_db():
@@ -189,7 +226,6 @@ def chatbot_api():
 
     bot_answer = chatbot_request(question)
 
-    # Return JSON
     return jsonify({'response': bot_answer})
 
 
@@ -199,16 +235,16 @@ def create_user():
     if not data:
         return jsonify({"message": "No data provided"}), 400
 
-    # Extract user details
     uid = data.get('uid')
-    session['currentUser'] = db.collection('users').document(uid).get().to_dict()
-
+    user_data = data.copy()
+    user_data[uid] = uid
+    db.collection('users').document(uid).set(user_data)
+    session['currentUser'] = user_data
     return jsonify({"message": "User created successfully"}), 201
 
 @app.route("/signup", methods=["GET"])
 def signup():
     if request.method == "GET":
-        # Render the signup page
         return render_template("login_signup.html", firebase_config=firebase_config)
         
 @app.route('/api/login_user', methods=['POST'])
@@ -217,18 +253,78 @@ def login_user():
     if not data:
         return jsonify({"message": "No data provided"}), 400
 
-    # Extract user details
     uid = data.get('uid')
-
-    session['currentUser'] = db.collection('users').document(uid).get().to_dict()
-    print(session['currentUser'])
-
+    user_data = db.collection('users').document(uid).get().to_dict()
+    user_data['uid'] = uid
+    session['currentUser'] = user_data
     return jsonify({"message": "Login successful"}), 200
 
 @app.route('/logout')
 def logout():
     session.pop('currentUser', None)
     return redirect(url_for('signup'))
+
+@app.route('/crops/show-crops', methods=['GET'])
+def crops_page():
+    uid = session['currentUser']['uid']
+    collection_ref = db.collection('plant_data')
+    documents = collection_ref.list_documents()
+    matching_docs = []
+    for doc in documents:
+        doc_name = doc.id
+        if uid in doc_name:
+            matching_docs.append(doc.get().to_dict())
+    return render_template('crops.html', matching_docs=matching_docs)
+
+@app.route('/crops', methods=['POST'])
+def crops_api():
+    try:
+        plant_name = request.form['plant_name']
+        if not plant_name.strip():
+            raise ValueError("Plant name cannot be empty.")
+
+        plant_id = plant_name.lower().replace(' ', '-')
+
+        plant_data = get_plant(plant_id)
+
+        if 'error' in plant_data or 'data' not in plant_data:
+            return jsonify({"error": f"Could not fetch data for plant: {plant_name}"}), 400
+
+        data = plant_data['data']
+        extracted_data = {
+            "common_name": data.get("common_name", "Unknown"),
+            "scientific_name": data.get("scientific_name", "Unknown"),
+            "image_url": data.get("image_url", ""),
+            "slug": data.get("slug", ""),
+            "uid": session['currentUser']['uid'],  
+        }
+
+        client = OpenAI(api_key=authfile['openAI']['apiKey'])
+        instructions = "I will provide a plant's scientific name and you are to provide a brief description of the plant along with some basic care tips in under 50 words."
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": instructions},
+                {
+                    "role": "user",
+                    "content": extracted_data['scientific_name']
+                }
+            ]
+        )
+        response = dict(completion.choices[0].message)
+        response = response['content']
+        extracted_data['description'] = response
+        doc_name = f"{extracted_data['slug']}-{extracted_data['uid']}"
+
+        db.collection('plant_data').document(doc_name).set(extracted_data)
+
+        return redirect(url_for('crops_page'))
+
+    except Exception as e:
+        print(f"Error in crops_api: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

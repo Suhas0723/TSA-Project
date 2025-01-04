@@ -3,7 +3,6 @@ matplotlib
 pillow
 geopy
 requests
-pyrebase
 pyyaml
 firebase-admin
 openai
