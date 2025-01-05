@@ -313,15 +313,23 @@ def crops_api():
     try:
         plant_name = request.form['plant_name']
         if not plant_name.strip():
-            raise ValueError("Plant name cannot be empty.")
+            error_message = "Plant name cannot be empty."
+            return render_template("crops.html", error=error_message)
 
         plant_id = plant_name.lower().replace(' ', '-')
+
+        name = plant_id+"-"+session['currentUser']['uid']
+        for doc in db.collection('plant_data').list_documents():
+            if name == doc.id:
+                error_message = f"Plant: {plant_name} already exists in the database."
+                return render_template("crops.html", error=error_message)
 
         plant_data = get_plant(plant_id)
 
         if 'error' in plant_data or 'data' not in plant_data:
-            return jsonify({"error": f"Could not fetch data for plant: {plant_name}"}), 400
-
+            error_message = f"Could not fetch data for plant: {plant_name}"
+            return render_template("crops.html", error=error_message)
+        
         data = plant_data['data']
         extracted_data = {
             "common_name": data.get("common_name", "Unknown"),

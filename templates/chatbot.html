@@ -34,44 +34,61 @@
                 </a>
                 <a href="/chatbot" class="active">
                     <span class="material-icons-sharp">forum</span>
-                    <h3>AgriBot</h3>
+                    <h3>AgriAI</h3>
                 </a>
                 <a href="/logout">
                     <span class="material-icons-sharp">logout</span>
                     <h3>Logout</h3>
                 </a>
             </div>
-            <div class="agriculture-links">
-                <h3>Helpful Websites</h3>
-                <ul>
-                    <li><a href="https://www.usda.gov" target="_blank">USDA - United States Department of Agriculture</a></li>
-                    <li><a href="https://www.fao.org" target="_blank">FAO - Food and Agriculture Organization</a></li>
-                    <li><a href="https://www.nass.usda.gov" target="_blank">NASS - National Agricultural Statistics Service</a></li>
-                    <li><a href="https://www.agriculture.com" target="_blank">Agriculture.com</a></li>
-                    <li><a href="https://www.cdfa.ca.gov" target="_blank">CDFA - California Department of Food and Agriculture</a></li>
-                </ul>
-            </div>
         </aside>
 
         <main>
-            <h1>AgriBot - AI Chatbot</h1>
-            <div class="chat-container">
-                <div class="chat-box" id="chat-box">
-                </div>
-                <div class="chat-input">
-                    <form id="chat-form">
-                        <input type="text" id="question" name="question"
-                            placeholder="Ask AgriBot about agriculture..." />
-                        <button type="submit">
-                            <span class="material-icons-sharp">send</span>
+            <h1>AgriAI</h1>
+            <!-- New wrapper for the chat container and the links -->
+            <div class="chat-and-links">
+                <div class="chat-container">
+                    <div class="chat-box" id="chat-box"></div>
+                    <div class="chat-input">
+                        <form id="chat-form">
+                            <input type="text" id="question" name="question" placeholder="Ask AgriBot about agriculture..." />
+                            <button type="submit">
+                                <span class="material-icons-sharp">send</span>
+                            </button>
+                        </form>
+                        <button type="button" class="btn-danger" id="clear-btn" onclick="clearText()">
+                            <span class="material-icons-sharp">close</span>
                         </button>
-                    </form>
-                    <button type="button" class="btn-danger" id="clear-btn" onclick="clearText()">
-                        <span class="material-icons-sharp">close</span>
-                    </button>
+                    </div>
+                </div>
+                <!-- Moved .agriculture-links inside .chat-and-links so it sits to the right -->
+
+                <div class="info-panels">
+                    <div class="agriculture-links">
+                        <h3>Helpful Websites</h3>
+                        <ul>
+                            <li><a href="https://www.usda.gov" target="_blank">USDA - United States Department of Agriculture</a></li>
+                            <li><a href="https://www.fao.org" target="_blank">FAO - Food and Agriculture Organization</a></li>
+                            <li><a href="https://www.nass.usda.gov" target="_blank">NASS - National Agricultural Statistics Service</a></li>
+                            <li><a href="https://www.agriculture.com" target="_blank">Agriculture.com</a></li>
+                            <li><a href="https://www.cdfa.ca.gov" target="_blank">CDFA - California Department of Food and Agriculture</a></li>
+                        </ul>
+                    </div>
+                    <div class="agriculture-news">
+                        <h3>Latest Agricultural News</h3>
+                        <ul>
+                            <li><a href="https://www.agriculture.com/news" target="_blank">Crop Prices Reach New High</a></li>
+                            <li><a href="https://www.fao.org/news" target="_blank">Innovative Irrigation Techniques</a></li>
+                            <li><a href="https://www.usda.gov/media/press-releases" target="_blank">USDA Updates Farm Policies</a></li>
+                            <li><a href="https://www.agweb.com" target="_blank">Sustainable Farming Practices</a></li>
+                            <li><a href="https://www.nass.usda.gov/Newsroom" target="_blank">New Census of Agriculture Released</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
+
         </main>
+        
         <div class="right-section">
             <div class="nav">
                 <button id="menu-btn">
@@ -132,74 +149,134 @@
     </script>
 
     <style>
-        main {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-        }
+    .chat-and-links {
+        display: flex;               
+        justify-content: center;     
+        align-items: flex-start;     
+        gap: 2rem;                   
+        max-width: 1200px;           
+        width: 100%;
+        margin: 0 auto;              
+    }
 
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            background-color: var(--color-white);
-            padding: var(--card-padding);
-            border-radius: var(--card-border-radius);
-            box-shadow: var(--box-shadow);
-            height: 60vh;
-            max-width: 50%;
-            width: 100%;
-            margin: 0 auto;
-        }
+    .chat-container {
+        flex: 4;                     
+        display: flex;
+        flex-direction: column;
+        background-color: var(--color-white);
+        padding: var(--card-padding);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--box-shadow);
+        height: 70vh;                
+    }
 
-        .chat-box {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background-color: var(--color-background);
-            border-radius: var(--border-radius-2);
-        }
+    .info-panels {
+        display: flex;               
+        flex-direction: row;         
+        gap: 2rem;
+        flex: 3;                  
+    }
 
-        .chat-input {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
+    .agriculture-links, 
+    .agriculture-news {
+        flex: 1;                     
+        background-color: var(--color-white);
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        height: 70vh;                
+        overflow-y: auto;            
+        max-width: 300px;            
+        display: flex;
+        flex-direction: column;
+    }
 
-        .chat-input form {
-            display: flex;
-            flex: 1;
-            gap: 0.5rem;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 0.8rem;
-            border-radius: var(--border-radius-2);
-            border: 1px solid var(--color-light);
-            background-color: var(--form-background);
-        }
-
-        .chat-input button {
-            background-color: var(--color-primary);
-            color: white;
-            border-radius: var(--border-radius-2);
-            padding: 0.8rem;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    .agriculture-links h3,
+    .agriculture-news h3 {
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--color-primary);
+        text-align: center;
+    }
 
 
-        .message {
-            margin: 0.5rem 0;
-        }
-        
+    .agriculture-links ul, 
+    .agriculture-news ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .agriculture-links li,
+    .agriculture-news li {
+        margin: 0.5rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .agriculture-links li:last-child,
+    .agriculture-news li:last-child {
+        border-bottom: none;
+    }
+
+    .agriculture-links a,
+    .agriculture-news a {
+        color: var(--color-primary);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .agriculture-links a:hover,
+    .agriculture-news a:hover {
+        text-decoration: underline;
+        color: var(--color-primary-dark);
+    }
+
+
+    .chat-box {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background-color: var(--color-background);
+        border-radius: var(--border-radius-2);
+    }
+
+    .chat-input {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .chat-input form {
+        display: flex;
+        flex: 1;
+        gap: 0.5rem;
+    }
+
+    .chat-input input {
+        flex: 1;
+        padding: 0.8rem;
+        border-radius: var(--border-radius-2);
+        border: 1px solid var(--color-light);
+        background-color: var(--form-background);
+    }
+
+    .chat-input button {
+        background-color: var(--color-primary);
+        color: white;
+        border-radius: var(--border-radius-2);
+        padding: 0.8rem;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+            
 
         
     </style>
