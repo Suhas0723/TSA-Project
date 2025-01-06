@@ -6,6 +6,7 @@ import yaml
 import requests
 import firebase_admin
 from firebase_admin import credentials,  firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 app = Flask(__name__)
 
@@ -59,7 +60,6 @@ def get_stormglass_api():
     response = stormglass_response.json()
 
     return response
-
 
 def get_weatherapi_averages():
     
@@ -173,8 +173,6 @@ def plant_to_db(plant_data, uid):
         print(f"Error in plant_to_db: {e}")
         raise
 
-
-
 def api_to_db():
     doc_id = str(date.today())
 
@@ -211,7 +209,14 @@ def index():
 
 @app.route('/water-usage')
 def water_usage():
-    return render_template('water_usage1.html')
+    # weather_doc = None
+    # for doc in db.collection('weatherapi_data').list_documents():
+    #     print(doc.id)
+    #     if (session['currentUser']['uid'] in doc.id) and (str(date.today()) in doc.id):
+    #         weather_doc = doc.to_dict()
+    #         print(weather_doc)
+
+    return render_template('water_usage1.html', uid=session['currentUser']['uid'])
 
 @app.route('/chatbot', methods=['GET'])
 def chatbot_page():
@@ -323,8 +328,136 @@ def crops_api():
     except Exception as e:
         print(f"Error in crops_api: {e}")
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/add_irrigation', methods=['POST'])
+def add_irrigation():
+    print("Im fweaking goated")
+    data = request.json
+    if not data:
+        return jsonify({"message": "No data provided"}), 400
+    
+    try:
+        # Retrieve the scientific name (slug) from the data
+        for_plant_slug = data['forPlant']
 
+        uid = session['currentUser']['uid']
+        collection_ref = db.collection('plant_data')
+        documents = collection_ref.list_documents()
 
+        matching_docs = []
+
+        # Find documents belonging to the current user
+        for doc in documents:
+            doc_name = doc.id
+            print("Checking document:", doc_name)
+            if uid in doc_name:
+                matching_docs.append(doc)
+
+        plant_ref = None
+
+        # Find the specific document matching the slug
+        for doc in matching_docs:
+            doc_snapshot = doc.get()  # Fetch the document's data
+            doc_data = doc_snapshot.to_dict()  # Convert the data to a dictionary
+            if doc_data and doc_data.get('slug') == for_plant_slug:
+                plant_ref = doc  # Store the matching DocumentReference
+                break
+
+        if not plant_ref:
+            return jsonify({"message": "Matching plant not found"}), 404
+
+        # Add the irrigation data to the 'irrigations' subcollection for the matched plant
+        plant_ref.update({
+            'irrigations': firestore.ArrayUnion([data])
+        })
+        return jsonify({"message": "Irrigation added successfully"}), 201
+
+    except Exception as e:
+        print("no gotead", str(e))
+        return jsonify({"message": f"An error occurred: {str(e)}"}), 500
+
+@app.route('/api/get_crop_data', methods=['GET'])
+def get_crop_data():
+    try:
+        # # Reference to the 'crops' collection in Firestore
+        # crops_ref = db.collection('users').document(session['currentUser']['uid']).collection('plants')  # replace 'crops' with your actual collection name
+        # crops = crops_ref.stream()
+
+        # # Collect data from Firestore and format it for JSON response
+        # crop_data = []
+        # for crop in crops:
+        #     crop_dict = crop.to_dict()
+        #     # crop_dict['id'] = crop.id  # Optionally, include the document ID
+        #     crop_data.append(crop_dict)
+
+        uid = session['currentUser']['uid']
+        collection_ref = db.collection('plant_data')
+        documents = collection_ref.list_documents()
+        matching_docs = []
+        for doc in documents:
+            doc_name = doc.id
+            if uid in doc_name:
+                matching_docs.append(doc.get().to_dict())
+        print(matching_docs)
+
+        print(matching_docs)
+        return jsonify(matching_docs), 200  # Return crop data in JSON format
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/update_crop_data', methods=['POST'])
+def update_crop_data():
+    data = request.json
+    if not data or 'slug' not in data:
+        return jsonify({"message": "Invalid data"}), 400
+
+    slug = data['slug']
+    water_cost = data['waterCost']
+    field_area = data['fieldArea']
+    crop_density = data['cropDensity']
+
+    # Find the crop in the database
+    plant_ref = findPlantWithSlug(slug)
+
+    if not plant_ref:
+        return jsonify({"message": "Plant not found"}), 404
+
+    # Assuming there is only one matching document
+    # plant_doc = plant_ref
+    # plant_doc_ref = db.collection('plants').document(plant_ref.id)
+
+    # Update the crop's field area and crop density
+    plant_ref.update({
+        'fieldArea': field_area,
+        'cropDensity': crop_density,
+        'waterCost' : water_cost
+    })
+
+    return jsonify({"message": "Crop data updated successfully"}), 200
+
+def findPlantWithSlug(slug):
+    uid = session['currentUser']['uid']
+    collection_ref = db.collection('plant_data')
+    documents = collection_ref.list_documents()
+
+    matching_docs = []
+
+    # Find documents belonging to the current user
+    for doc in documents:
+        doc_name = doc.id
+        print("Checking document:", doc_name)
+        if uid in doc_name:
+            matching_docs.append(doc)
+
+    plant_ref = None
+
+    # Find the specific document matching the slug
+    for doc in matching_docs:
+        doc_snapshot = doc.get()  # Fetch the document's data
+        doc_data = doc_snapshot.to_dict()  # Convert the data to a dictionary
+        if doc_data and doc_data.get('slug') == slug:
+            return doc
 
 if __name__ == "__main__":
     app.run(debug=True)
