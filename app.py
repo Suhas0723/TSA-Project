@@ -6,9 +6,11 @@ import yaml
 import requests
 import firebase_admin
 from firebase_admin import credentials,  firestore
-from google.cloud.firestore_v1.base_query import FieldFilter
+from geopy.geocoders import Nominatim
 
 app = Flask(__name__)
+
+loc = Nominatim(user_agent="Geopy Library")
 
 with open('auth.yaml', 'r') as file:
     authfile = yaml.safe_load(file)
@@ -16,6 +18,8 @@ with open('auth.yaml', 'r') as file:
 app.secret_key = authfile['flask']['secretKey']
 
 firebase_config = authfile.get('firebase', {})
+
+
 
 
 cred = credentials.Certificate("tsa-agriculture-app-firebase-adminsdk-4jash-f87e772be9.json")
@@ -45,12 +49,26 @@ def check_and_increment_usage(api_name):
 
 
 def get_stormglass_api():
+    
+    user = db.collection("users").document(session['currentUser']['uid']).get().to_dict()
+    address = {
+        "street": user['address']['line1'],
+        "city": user['address']['city'],
+        "state": user['address']['state'],
+        "postalcode": user['address']['zip'],
+        "country": user['address']['country'],
+    }
+    location = loc.geocode(address)
+
+
+
+    print("latitude:", location.latitude, "longitude:", location.longitude)
 
     stormglass_response = requests.get(
         'https://api.stormglass.io/v2/bio/point',
         params={
-            'lat': 58.7984,
-            'lng': 17.8081,
+            'lat': location.latitude,
+            'lng': location.longitude,
             'params': ','.join(['soilMoisture','soilTemperature'])
         },
         headers={
@@ -62,12 +80,14 @@ def get_stormglass_api():
     return response
 
 def get_weatherapi_averages():
-    
+    user = db.collection("users").document(session['currentUser']['uid']).get().to_dict()
+    city = user['address']['city']
+
     weatherapi_response = requests.get(
         'https://api.weatherapi.com/v1/forecast.json',
         params={
             'key': authfile['weatherapi']['apiKey'],
-            'q': 'Atlanta',
+            'q': city,
             'days': 3
         }
     )
@@ -99,7 +119,8 @@ def get_weatherapi_averages():
             "date": date_str,
             "averageTemperature": avg_temp,
             "averageCloud": avg_cloud,
-            "averagePrecip": avg_precip
+            "averagePrecip": avg_precip, 
+            "UV": weather_data['forecast']['forecastday'][0]['day']['uv']
         })
 
     return {"daily_averages": daily_averages}
@@ -173,20 +194,31 @@ def plant_to_db(plant_data, uid):
         print(f"Error in plant_to_db: {e}")
         raise
 
-def api_to_db():
+def api_to_db(uid):
     doc_id = str(date.today())
 
-    stormglass_doc = db.collection("stormglass_data").document(doc_id).get()
+    stormglass_doc = db.collection("stormglass_data").document(doc_id+"-"+uid).get()
     if not stormglass_doc.exists:
-        stormglass_data = get_stormglass_api()  
-        db.collection("stormglass_data").document(doc_id).set(stormglass_data)
+        stormglass_data = get_stormglass_api()
+        print(stormglass_data)
+        db.collection("stormglass_data").document(doc_id+"-"+uid).set(stormglass_data)
+        
 
-    weatherapi_doc = db.collection("weatherapi_data").document(doc_id).get()
+    weatherapi_doc = db.collection("weatherapi_data").document(doc_id+"-"+uid).get()
     if not weatherapi_doc.exists:
         weather_data = get_weatherapi_averages()  
-        db.collection("weatherapi_data").document(doc_id).set(weather_data)
+        db.collection("weatherapi_data").document(doc_id+"-"+uid).set(weather_data)
 
-api_to_db()  
+@app.route('/api-to-db', methods=['GET'])
+def run_api_to_db():
+    try:
+        uid = session['currentUser']['uid']
+        api_to_db(uid)
+        return jsonify({"message": "API to DB process completed!"}), 200
+    except KeyError:
+        return jsonify({"error": "User is not logged in."}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500 
     
 
 @app.route('/')
@@ -198,25 +230,31 @@ def index():
     
     doc_id = str(date.today())
     try:
-        daily_averages = db.collection("weatherapi_data").document(doc_id).get().to_dict()
-        stormglass_data = db.collection("stormglass_data").document(doc_id).get().to_dict()
+        uid = session['currentUser']['uid']
+        collection_ref = db.collection('plant_data')
+        documents = collection_ref.list_documents()
+        matching_docs = []
+        for doc in documents:
+            doc_name = doc.id
+            if uid in doc_name:
+                matching_docs.append(doc.get().to_dict())
+
+        if len(matching_docs) > 4:
+            matching_docs = matching_docs[:4]
+        daily_averages = db.collection("weatherapi_data").document(doc_id+"-"+session['currentUser']['uid']).get().to_dict()
+        stormglass_data = db.collection("stormglass_data").document(doc_id+"-"+session['currentUser']['uid']).get().to_dict()
         soil_moisture = stormglass_data['hours'][1]['soilMoisture']['noaa']
         soil_temperature = stormglass_data['hours'][1]['soilTemperature']['noaa']
+
     
-        return render_template('dashboard.html', daily_averages=daily_averages['daily_averages'], soil_moisture=soil_moisture, soil_temperature=soil_temperature, username=username)
+        return render_template('dashboard.html', plants = matching_docs, daily_averages=daily_averages['daily_averages'], soil_moisture=soil_moisture, soil_temperature=soil_temperature, username=username)
     except Exception as e:
         return f"Error: {str(e)}", 500
 
 @app.route('/water-usage')
 def water_usage():
-    # weather_doc = None
-    # for doc in db.collection('weatherapi_data').list_documents():
-    #     print(doc.id)
-    #     if (session['currentUser']['uid'] in doc.id) and (str(date.today()) in doc.id):
-    #         weather_doc = doc.to_dict()
-    #         print(weather_doc)
-
     return render_template('water_usage1.html', uid=session['currentUser']['uid'])
+
 
 @app.route('/chatbot', methods=['GET'])
 def chatbot_page():
@@ -236,6 +274,7 @@ def chatbot_api():
 
 @app.route('/api/create_user', methods=['POST'])
 def create_user():
+    global uid
     data = request.json
     if not data:
         return jsonify({"message": "No data provided"}), 400
@@ -262,7 +301,7 @@ def login_user():
     user_data = db.collection('users').document(uid).get().to_dict()
     user_data['uid'] = uid
     session['currentUser'] = user_data
-    return jsonify({"message": "Login successful"}), 200
+    return redirect(url_for('run_api_to_db'))
 
 @app.route('/logout')
 def logout():
@@ -286,15 +325,23 @@ def crops_api():
     try:
         plant_name = request.form['plant_name']
         if not plant_name.strip():
-            raise ValueError("Plant name cannot be empty.")
+            error_message = "Plant name cannot be empty."
+            return render_template("crops.html", error=error_message)
 
         plant_id = plant_name.lower().replace(' ', '-')
+
+        name = plant_id+"-"+session['currentUser']['uid']
+        for doc in db.collection('plant_data').list_documents():
+            if name == doc.id:
+                error_message = f"Plant: {plant_name} already exists in the database."
+                return render_template("crops.html", error=error_message)
 
         plant_data = get_plant(plant_id)
 
         if 'error' in plant_data or 'data' not in plant_data:
-            return jsonify({"error": f"Could not fetch data for plant: {plant_name}"}), 400
-
+            error_message = f"Could not fetch data for plant: {plant_name}"
+            return render_template("crops.html", error=error_message)
+        
         data = plant_data['data']
         extracted_data = {
             "common_name": data.get("common_name", "Unknown"),

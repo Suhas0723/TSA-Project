@@ -61,11 +61,6 @@
       padding: 20px;
     }
 
-    /* .flip-card-front {
-      background-color: #f8f9fa;
-      color: #333;
-    } */
-
     .flip-card-back {
       transform: rotateY(180deg);
       background-color: #6D9C4E;
@@ -159,6 +154,30 @@
       outline: 2px solid #42a5f5;
       outline-offset: 2px;
     }
+    .error-box {
+    background-color: #f44336;
+    color: white;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .hidden {
+    display: none;
+    }
+
+    .close-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    }
   </style>
 
   <title>Card Element</title>
@@ -198,6 +217,12 @@
       </div>
     </aside>
     <main>
+      {% if error %}
+      <div id="error-box" class="error-box">
+        <span id="error-message">{{ error }}</span>
+        <button id="close-error-box" class="close-button" onclick="closeErrorBox()">×</button>
+      </div>
+      {% endif %}
       <form action="/crops" method="post" class="plant-form">
         <input type="text" name="plant_name" placeholder="Enter plant name" style="flex: 1; padding: 8px;" required />
         <button type="submit" style="margin-left: 10px; padding: 8px 16px; background: #7FB414; border-radius: 10%;">
@@ -250,5 +275,11 @@
     </div>
   </div>
   <script src="{{ url_for('static', filename='index.js') }}"></script>
+  <script>
+    function closeErrorBox() {
+      const errorBox = document.getElementById('error-box');
+      errorBox.classList.add('hidden');
+    }
+  </script>
 </body>
 </html>
