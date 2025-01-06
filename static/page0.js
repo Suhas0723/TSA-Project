@@ -1,5 +1,4 @@
 const firebaseConfig = JSON.parse(document.getElementById('firebase_config').textContent);
-console.log("maybe it fweaking worked??");
 const firebaseApp = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const firestore = firebase.firestore();
