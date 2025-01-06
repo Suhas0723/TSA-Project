@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles2.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.css" rel="stylesheet">
@@ -69,16 +69,16 @@
             </div>
         </aside>
         <!-- End of Sidebar Section -->
-
+        
         <!-- Main Content -->
         <main>
             <h1>Water Usage</h1>
-            <div class="selector-container">
-                <h2>Select Crop</h2>
-                <select id="crop-selector">
-                    <option value="" disabled selected>Select a crop</option>
-                </select>
-            </div>
+        <div class="selector-container">
+            <h2>Select Crop</h2>
+            <select id="crop-selector">
+                <option value="" disabled selected>Select a crop</option>
+            </select>
+        </div>
             <!-- Analyses -->
             <div class="analyse">
                 <div class="sales">
@@ -86,6 +86,7 @@
                         <div class="info">
                             <h3>Water Cost</h3>
                             <h1 id="total-water-cost"></h1>
+                            <span style="font-size: 1em; color: grey; margin-left: 5px;">$/month</span>
                         </div>
                         <div class="progresss">
                             <svg>
@@ -102,6 +103,7 @@
                         <div class="info">
                             <h3>Water Usage Rate</h3>
                             <h1 id="total-water-usage"></h1>
+                            <span style="font-size: 1em; color: grey; margin-left: 5px;">L/month</span>
                         </div>
                         <div class="progresss">
                             <svg>
@@ -136,7 +138,7 @@
             <div style="display: flex; justify-content: space-between; gap: 2rem;">
                 <!-- New Users Section 1 (Water Usage Data) -->
                 <div class="new-users" style="width: 50%;">
-                    <h2>Water Usage Data</h2>
+                    <!-- <h2>Water Usage Data</h2> -->
                     <div class="user-list">
                         <canvas id="irrigationChart" width="400" height="200"></canvas>
                     </div>
@@ -145,7 +147,7 @@
 
                 <!-- New Users Section 2 (Calendar) -->
                 <div class="new-users" style="width: 50%;">
-                    <h2>Water Usage Data</h2>
+                    <!-- <h2>Water Usage Data</h2> -->
                     <div class="user-list">
                         <div id="calendar"></div>
                     </div>
@@ -246,60 +248,7 @@
             
                 <!-- Sample Irrigation Cards (past irrigations) -->
                 <div class="notification">
-                    <div class="icon">
-                        <span class="material-icons-sharp">
-                            water_drop
-                        </span>
-                    </div>
-                    <div class="content">
-                        <div class="info">
-                            <h3>Past Irrigation #1</h3>
-                            <small class="text_muted">
-                                2025-01-01, 08:00 AM - 10:00 AM
-                            </small>
-                        </div>
-                        <span class="material-icons-sharp">
-                            more_vert
-                        </span>
-                    </div>
-                </div>
-            
-                <div class="notification">
-                    <div class="icon">
-                        <span class="material-icons-sharp">
-                            water_drop
-                        </span>
-                    </div>
-                    <div class="content">
-                        <div class="info">
-                            <h3>Past Irrigation #2</h3>
-                            <small class="text_muted">
-                                2025-01-02, 09:00 AM - 11:00 AM
-                            </small>
-                        </div>
-                        <span class="material-icons-sharp">
-                            more_vert
-                        </span>
-                    </div>
-                </div>
-            
-                <div class="notification">
-                    <div class="icon">
-                        <span class="material-icons-sharp">
-                            water_drop
-                        </span>
-                    </div>
-                    <div class="content">
-                        <div class="info">
-                            <h3>Past Irrigation #3</h3>
-                            <small class="text_muted">
-                                2025-01-03, 07:00 AM - 09:00 AM
-                            </small>
-                        </div>
-                        <span class="material-icons-sharp">
-                            more_vert
-                        </span>
-                    </div>
+                    
                 </div>
             </div>
 
@@ -364,6 +313,8 @@
 </script>
 
 <script>
+
+
     function renderCalendar() {    
         // Define your irrigation data (dates, water output rate, and duration)
         var irrigationData = selectedCrop.irrigations
@@ -761,6 +712,7 @@ function renderIrrigationCards(irrigations) {
         return;
     }
 
+    let cnt = 0
     // Loop through the irrigations and create cards
     irrigations.forEach((irrigation, index) => {
         const irrigationCard = document.createElement('div');
@@ -781,6 +733,8 @@ function renderIrrigationCards(irrigations) {
             </div>
         `;
         container.appendChild(irrigationCard);
+        cnt++
+        if (cnt>=3) { return }
     });
 }
 
@@ -888,7 +842,7 @@ function calcTotalWaterUsage() {
     console.log('Total Monthly Water Usage: ' + totalMonthlyWaterUsage.toFixed(2) + ' L');
     
     // Optionally, display the total monthly water usage on the webpage
-    document.getElementById('total-water-usage').textContent = totalMonthlyWaterUsage.toFixed(2) + ' L';
+    document.getElementById('total-water-usage').textContent = totalMonthlyWaterUsage.toFixed(2);
 }
 
 </script>
