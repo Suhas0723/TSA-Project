@@ -51,6 +51,7 @@ def check_and_increment_usage(api_name):
 def get_stormglass_api():
     
     user = db.collection("users").document(session['currentUser']['uid']).get().to_dict()
+    print(user, session['currentUser']['uid'])
     address = {
         "street": user['address']['line1'],
         "city": user['address']['city'],
@@ -60,15 +61,18 @@ def get_stormglass_api():
     }
     location = loc.geocode(address)
 
-
-
-    print("latitude:", location.latitude, "longitude:", location.longitude)
+    try:
+        lat = location.latitude
+        lng = location.longitude
+    except:
+        lat = 33.7501
+        lng = 84.3885
 
     stormglass_response = requests.get(
         'https://api.stormglass.io/v2/bio/point',
         params={
-            'lat': location.latitude,
-            'lng': location.longitude,
+            'lat': lat,
+            'lng': lng,
             'params': ','.join(['soilMoisture','soilTemperature'])
         },
         headers={
@@ -209,16 +213,16 @@ def api_to_db(uid):
         weather_data = get_weatherapi_averages()  
         db.collection("weatherapi_data").document(doc_id+"-"+uid).set(weather_data)
 
-@app.route('/api-to-db', methods=['GET'])
-def run_api_to_db():
-    try:
-        uid = session['currentUser']['uid']
-        api_to_db(uid)
-        return jsonify({"message": "API to DB process completed!"}), 200
-    except KeyError:
-        return jsonify({"error": "User is not logged in."}), 401
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500 
+# @app.route('/api-to-db', methods=['GET'])
+# def run_api_to_db():
+#     try:
+#         uid = session['currentUser']['uid']
+#         api_to_db(uid)
+#         return jsonify({"message": "API to DB process completed!"}), 200
+#     except KeyError:
+#         return jsonify({"error": "User is not logged in."}), 401
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500 
     
 
 @app.route('/')
@@ -271,10 +275,8 @@ def chatbot_api():
 
     return jsonify({'response': bot_answer})
 
-
 @app.route('/api/create_user', methods=['POST'])
 def create_user():
-    global uid
     data = request.json
     if not data:
         return jsonify({"message": "No data provided"}), 400
@@ -284,6 +286,7 @@ def create_user():
     user_data[uid] = uid
     db.collection('users').document(uid).set(user_data)
     session['currentUser'] = user_data
+    api_to_db(uid)
     return jsonify({"message": "User created successfully"}), 201
 
 @app.route("/signup", methods=["GET"])
@@ -301,7 +304,8 @@ def login_user():
     user_data = db.collection('users').document(uid).get().to_dict()
     user_data['uid'] = uid
     session['currentUser'] = user_data
-    return redirect(url_for('run_api_to_db'))
+    api_to_db(uid)
+    return jsonify({"message": "API to DB process completed!"}), 200
 
 @app.route('/logout')
 def logout():

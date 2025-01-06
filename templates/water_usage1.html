@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles2.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.css" rel="stylesheet">
@@ -69,16 +69,16 @@
             </div>
         </aside>
         <!-- End of Sidebar Section -->
-
+        
         <!-- Main Content -->
         <main>
             <h1>Water Usage</h1>
-            <div class="selector-container">
-                <h2>Select Crop</h2>
-                <select id="crop-selector">
-                    <option value="" disabled selected>Select a crop</option>
-                </select>
-            </div>
+        <div class="selector-container">
+            <h2>Select Crop</h2>
+            <select id="crop-selector">
+                <option value="" disabled selected>Select a crop</option>
+            </select>
+        </div>
             <!-- Analyses -->
             <div class="analyse">
                 <div class="sales">
@@ -313,6 +313,8 @@
 </script>
 
 <script>
+
+
     function renderCalendar() {    
         // Define your irrigation data (dates, water output rate, and duration)
         var irrigationData = selectedCrop.irrigations
