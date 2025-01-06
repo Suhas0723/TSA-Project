@@ -120,7 +120,8 @@ def get_weatherapi_averages():
             "date": date_str,
             "averageTemperature": avg_temp,
             "averageCloud": avg_cloud,
-            "averagePrecip": avg_precip
+            "averagePrecip": avg_precip, 
+            "UV": weather_data['forecast']['forecastday'][0]['day']['uv']
         })
 
     return {"daily_averages": daily_averages}
@@ -201,8 +202,10 @@ def api_to_db(uid):
 
     stormglass_doc = db.collection("stormglass_data").document(doc_id+"-"+uid).get()
     if not stormglass_doc.exists:
-        stormglass_data = get_stormglass_api()  
+        stormglass_data = get_stormglass_api()
+        print(stormglass_data)
         db.collection("stormglass_data").document(doc_id+"-"+uid).set(stormglass_data)
+        
 
     weatherapi_doc = db.collection("weatherapi_data").document(doc_id+"-"+uid).get()
     if not weatherapi_doc.exists:
@@ -213,7 +216,7 @@ def api_to_db(uid):
 def run_api_to_db():
     try:
         uid = session['currentUser']['uid']
-        api_to_db(uid) 
+        api_to_db(uid)
         return jsonify({"message": "API to DB process completed!"}), 200
     except KeyError:
         return jsonify({"error": "User is not logged in."}), 401
@@ -230,12 +233,24 @@ def index():
     
     doc_id = str(date.today())
     try:
+        uid = session['currentUser']['uid']
+        collection_ref = db.collection('plant_data')
+        documents = collection_ref.list_documents()
+        matching_docs = []
+        for doc in documents:
+            doc_name = doc.id
+            if uid in doc_name:
+                matching_docs.append(doc.get().to_dict())
+
+        if len(matching_docs) > 4:
+            matching_docs = matching_docs[:4]
         daily_averages = db.collection("weatherapi_data").document(doc_id+"-"+session['currentUser']['uid']).get().to_dict()
         stormglass_data = db.collection("stormglass_data").document(doc_id+"-"+session['currentUser']['uid']).get().to_dict()
         soil_moisture = stormglass_data['hours'][1]['soilMoisture']['noaa']
         soil_temperature = stormglass_data['hours'][1]['soilTemperature']['noaa']
+
     
-        return render_template('dashboard.html', daily_averages=daily_averages['daily_averages'], soil_moisture=soil_moisture, soil_temperature=soil_temperature, username=username)
+        return render_template('dashboard.html', plants = matching_docs, daily_averages=daily_averages['daily_averages'], soil_moisture=soil_moisture, soil_temperature=soil_temperature, username=username)
     except Exception as e:
         return f"Error: {str(e)}", 500
 
@@ -363,20 +378,6 @@ def crops_api():
     except Exception as e:
         print(f"Error in crops_api: {e}")
         return jsonify({"error": str(e)}), 500
-    
-@app.route('/test', methods=['GET'])
-def test_page():
-    user = db.collection("users").document(session['currentUser']['uid']).get().to_dict()
-    address = {
-        "street": user['address']['line1'],
-        "city": user['address']['city'],
-        "state": user['address']['state'],
-        "postalcode": user['address']['zip'],
-        "country": user['address']['country'],
-    }
-    location = loc.geocode(address)
-    print("latitude:", location.latitude, "longitude:", location.longitude)
-    return render_template('chatbot.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
