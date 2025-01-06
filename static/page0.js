@@ -140,7 +140,7 @@ loginBtn.addEventListener('click', () => {
       }
     })
     .catch((error) => {
-      alert('Error signing in: ' + error.message);
+      document.getElementById('wrongWarning').textContent = 'Invalid email or password.'
     });
 });
 const forgotBtn=document.querySelector('.forgotbtn');

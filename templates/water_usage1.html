@@ -11,7 +11,11 @@
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.js"></script>
+
+    <p style="display:none" id="uid">{{ uid }}</p>
+
     <title>AgroAssisstant</title>
+
 </head>
 
 <body>
@@ -69,14 +73,19 @@
         <!-- Main Content -->
         <main>
             <h1>Water Usage</h1>
-            <h2>Current Crop: Corn</h2>
+            <div class="selector-container">
+                <h2>Select Crop</h2>
+                <select id="crop-selector">
+                    <option value="" disabled selected>Select a crop</option>
+                </select>
+            </div>
             <!-- Analyses -->
             <div class="analyse">
                 <div class="sales">
                     <div class="status">
                         <div class="info">
                             <h3>Water Cost</h3>
-                            <h1>$9999</h1>
+                            <h1 id="total-water-cost"></h1>
                         </div>
                         <div class="progresss">
                             <svg>
@@ -92,7 +101,7 @@
                     <div class="status">
                         <div class="info">
                             <h3>Water Usage Rate</h3>
-                            <h1>24,981</h1>
+                            <h1 id="total-water-usage"></h1>
                         </div>
                         <div class="progresss">
                             <svg>
@@ -104,22 +113,22 @@
                         </div>
                     </div>
                 </div>
-                <div class="searches">
+                <!-- <div class="searches">
                     <div class="status">
                         <div class="info">
-                            <h3>Water Efficiency</h3>
-                            <h1>14,147</h1>
+                            <h3>Precipitation</h3>
+                            <h1></h1>
                         </div>
                         <div class="progresss">
                             <svg>
                                 <circle cx="38" cy="38" r="36"></circle>
                             </svg>
-                            <!-- <div class="percentage">
+                            <div class="percentage">
                                 <p>+21%</p>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
             <!-- End of Analyses -->
 
@@ -179,10 +188,10 @@
 
             <div class="user-profile">
                 <div class="logo">
-                    <h3>Irrigation</h3>
-                    <div class="water-output-rate">
-                        <label for="water-output-rate">Total Water Output Rate</label>
-                        <input type="text" id="water-output-rate" placeholder="Enter Output Rate">
+                    <!-- <h3>Irrigation</h3> -->
+                    <div class="water-cost">
+                        <label for="water-cost">Water Cost ($/L)</label>
+                        <input type="text" id="water-cost" placeholder="Enter Water Cost">
                     </div>
             
                     <div class="field-area">
@@ -191,7 +200,7 @@
                     </div>
             
                     <div class="avg-crop-density">
-                        <label for="avg-crop-density">Average Crop Density</label>
+                        <label for="avg-crop-density">Average Crop Density (crops/m²)</label>
                         <input type="text" id="avg-crop-density" placeholder="Enter Crop Density">
                     </div>
             
@@ -220,15 +229,20 @@
                 <!-- Irrigation Form (hidden initially) -->
                 <div class="notification add-reminder form-container" id="irrigation-form" style="display: none;">
                     <form id="irrigation-form-data">
-                        <label for="irrigation-date">Irrigation Date</label>
+                        <label for="irrigation-date">Date</label>
                         <input type="date" id="irrigation-date" required>
             
-                        <label for="irrigation-duration">Irrigation Duration (hrs)</label>
+                        <label for="irrigation-duration">Duration (hrs)</label>
                         <input type="number" id="irrigation-duration" required min="1">
+
+                        <label for="irrigation-rate">Water Output Rate</label>
+                        <input type="number" id="irrigation-rate" required>
             
-                        <button type="submit" class="save-btn">Save</button>
+                        <button type="submit" class="save-btn" id="save-irr-btn">Save</button>
                     </form>
                 </div>
+
+                <div id="irrigation-cards-container"></div>
             
                 <!-- Sample Irrigation Cards (past irrigations) -->
                 <div class="notification">
@@ -302,72 +316,87 @@
 </html>
 
 <script>
-    var ctx = document.getElementById('irrigationChart').getContext('2d');
-    var irrigationChart = new Chart(ctx, {
-        type: 'line', // You can change this to 'bar' if you prefer bar chart
-        data: {
-            labels: ['2025-01-01', '2025-01-02', '2025-01-03', '2025-01-04', '2025-01-05'], // Dates on the x-axis
-            datasets: [{
-                label: 'Water Output (m³)',
-                data: [120, 130, 110, 125, 140], // Water output data
-                fill: false,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            scales: {
-                x: {
-                    type: 'category', // Ensure x-axis is treated as categories (dates)
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Water Output (m³)'
+    var irrigationChart;
+    // Sample irrigation data (replace with actual data from your backend or selectedCrop)
+    function renderLineGraph() {    
+        if (irrigationChart) {
+            irrigationChart.destroy();
+        }
+        const irrigations = selectedCrop.irrigations
+        console.log(irrigations)
+
+        // Calculate the total water output for each irrigation (Water Rate * Duration)
+        const dates = irrigations.map(irrigation => irrigation.date);
+        const waterOutputs = irrigations.map(irrigation => irrigation.waterRate * irrigation.duration);
+
+        // Update the chart with the calculated data
+        var ctx = document.getElementById('irrigationChart').getContext('2d');
+        irrigationChart = new Chart(ctx, {
+            type: 'line', // You can change this to 'bar' if you prefer bar chart
+            data: {
+                labels: dates, // Use the actual dates as labels
+                datasets: [{
+                    label: 'Water Output (m³)',
+                    data: waterOutputs, // Use the calculated water outputs
+                    fill: false,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'category', // Ensure x-axis is treated as categories (dates)
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Water Output (m³)'
+                        }
                     }
                 }
             }
-        }
-    });
+        });}
 </script>
 
 <script>
-    $(document).ready(function() {
-        // Define your irrigation data (dates and water amounts)
-        var irrigationData = [
-            { date: '2025-01-01', waterAmount: 120 },
-            { date: '2025-01-02', waterAmount: 130 },
-            { date: '2025-01-03', waterAmount: 110 },
-            { date: '2025-01-04', waterAmount: 125 },
-            { date: '2025-01-05', waterAmount: 140 }
-        ];
+    function renderCalendar() {    
+        // Define your irrigation data (dates, water output rate, and duration)
+        var irrigationData = selectedCrop.irrigations
 
         // Map irrigation data to FullCalendar event format
         var events = irrigationData.map(function(item) {
-            var opacity = Math.min(1, item.waterAmount / 150); // Set maximum opacity limit
+            var totalWaterAmount = item.waterOutputRate * item.duration; // Calculate the total water amount
+            var opacity = Math.min(1, totalWaterAmount / 150); // Set maximum opacity limit (adjust divisor as needed)
+            
             return {
                 title: 'Irrigation',
                 start: item.date,
-                rendering: 'background',
-                backgroundColor: `rgba(75, 192, 192, ${opacity})`, // Use waterAmount to adjust opacity
+                rendering: 'background', // Ensure the event is rendered as a background
+                backgroundColor: `rgba(75, 192, 192, ${opacity})`, // Adjust opacity based on water amount
                 borderColor: 'rgba(75, 192, 192, 1)'
             };
         });
 
         // Initialize the calendar
+        $('#calendar').fullCalendar('destroy');
         $('#calendar').fullCalendar({
             events: events,
-            eventColor: '#ff9f89', // Color of event highlights
+            eventColor: '#ff9f89', // Color of event highlights (not used for background events)
             eventRender: function(event, element) {
                 // Optionally, add more custom styling for the events
-                element.css('opacity', event.backgroundColor);
+                element.css('opacity', event.backgroundColor ? parseFloat(event.backgroundColor.split(',')[3]) : 1);
+            },
+            eventAfterRender: function(event, element) {
+                // Ensure event has the correct opacity, in case it's dynamically updated
+                var opacity = event.backgroundColor ? parseFloat(event.backgroundColor.split(',')[3]) : 1;
+                element.css('opacity', opacity);
             }
-        });
-    });
+        });}
 </script>
 
 <style>
@@ -416,6 +445,28 @@
 /* Hover Effect on Input Fields */
 .logo input:hover {
     border-color: #66bb6a;
+}
+
+.selector-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between label and select */
+}
+
+/* Style the select element */
+#crop-selector {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+/* Add some hover and focus styles for the select element */
+#crop-selector:hover,
+#crop-selector:focus {
+    border-color: #4CAF50; /* Green color for hover/focus */
 }
 
 /* Input Focus Style */
@@ -584,15 +635,46 @@ newIrrigationBtn.addEventListener('click', () => {
 const irrigationFormData = document.getElementById('irrigation-form-data');
 irrigationFormData.addEventListener('submit', (e) => {
     e.preventDefault();
-    
-    // Logic to save the irrigation data (could be done with backend API or local storage)
-    
-    // After saving, revert back to the "New Irrigation" button
     newIrrigationBtn.style.display = 'block';
     irrigationForm.style.display = 'none';
-    
-    // Optionally, show the newly added irrigation in the scheduled list
-    // You could also dynamically add the new irrigation to the past irrigation cards here.
+
+    const irrigation = {
+        date: document.getElementById('irrigation-date').value,
+        duration: document.getElementById('irrigation-duration').value,
+        waterRate: document.getElementById('irrigation-rate').value,
+        forPlant: selectedCrop.slug,
+    };
+
+    if (!selectedCrop.irrigations) {
+        selectedCrop.irrigations = [];
+    }
+    selectedCrop.irrigations.push(irrigation);
+    renderIrrigationCards(selectedCrop.irrigations);
+    renderLineGraph();
+    renderCalendar();
+    calcWaterCost();
+    calcTotalWaterUsage();
+
+    fetch('/api/add_irrigation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(irrigation), // Convert to JSON string
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log('Irrigation added successfully:', data);
+        })
+        .catch((error) => {
+            console.error('Error adding irrigation:', error);
+        });
+
 });
 
 // Get the input fields and the update button
@@ -619,4 +701,194 @@ updateButton.addEventListener('click', () => {
     // Optionally, you can perform any additional logic when the update button is clicked
     // For example, you can save the updated values, or send them to a backend.
 });
+
+// Initialize the selected crop variable
+let selectedCrop = null;
+
+// Fetch crop data from the Flask backend
+fetch('/api/get_crop_data')
+  .then(response => response.json())
+  .then(data => {
+    const cropSelector = document.getElementById('crop-selector');
+    console.log(data);
+    // Populate the <select> element with options for each crop
+    data.forEach(crop => {
+      const option = document.createElement('option');
+      option.value = crop.slug; // Use the document ID as the value
+      option.textContent = crop.common_name; // Assuming 'name' is a property of the crop
+      cropSelector.appendChild(option);
+    });
+
+    // Add an event listener for when a crop is selected
+    cropSelector.addEventListener('change', function() {
+      // Find the selected crop based on the ID
+      const selectedCropId = this.value;
+      selectedCrop = data.find(crop => crop.slug === selectedCropId); // Set selectedCrop to the entire JSON object
+      console.log('Selected Crop:', selectedCrop);
+      if (selectedCrop) {
+        renderIrrigationCards(selectedCrop.irrigations); // Re-render irrigation cards
+        renderLineGraph();
+        renderCalendar();
+        calcWaterCost();
+        calcTotalWaterUsage();
+      }
+    });
+  })
+  .catch(error => {
+    console.error('Error fetching crop data:', error);
+  });
+
+//   document.getElementById('crop-selector').addEventListener('change', function () {
+//     const selectedPlantSlug = this.value; // Get the selected slug from the dropdown
+//     selectedCrop = data.find(crop => crop.slug === selectedPlantSlug); // Match crop in the data
+
+//     if (selectedCrop) {
+//         renderIrrigationCards(selectedCrop.irrigations); // Render the irrigation cards
+//     } else {
+//         console.error('Selected crop not found!');
+//     }
+// });
+
+// Function to render irrigation cards
+function renderIrrigationCards(irrigations) {
+    const container = document.getElementById('irrigation-cards-container');
+
+    // Clear existing cards
+    container.innerHTML = '';
+
+    if (!irrigations || irrigations.length === 0) {
+        container.innerHTML = '<p>No past irrigations available for this plant.</p>';
+        return;
+    }
+
+    // Loop through the irrigations and create cards
+    irrigations.forEach((irrigation, index) => {
+        const irrigationCard = document.createElement('div');
+        irrigationCard.className = 'notification';
+
+        irrigationCard.innerHTML = `
+            <div class="icon">
+                <span class="material-icons-sharp">water_drop</span>
+            </div>
+            <div class="content">
+                <div class="info">
+                    <h3>Past Irrigation #${index + 1}</h3>
+                    <small class="text_muted">
+                        ${irrigation.date}, ${irrigation.duration} - ${irrigation.duration}
+                    </small>
+                </div>
+                <span class="material-icons-sharp">more_vert</span>
+            </div>
+        `;
+        container.appendChild(irrigationCard);
+    });
+}
+
+// Event listener for when the update button is clicked
+document.querySelector('.update-btn').addEventListener('click', function() {
+    // Get the updated values from the input fields
+    const waterCost = document.getElementById('water-cost').value;
+    const fieldArea = document.getElementById('field-area').value;
+    const cropDensity = document.getElementById('avg-crop-density').value;
+
+    // Validate the inputs
+    if (!fieldArea || !cropDensity || !waterCost) {
+        alert('Please fill all fields.');
+        return;
+    }
+
+    // Prepare the data to be sent to Flask
+    const updatedData = {
+        slug: selectedCrop.slug,  // Use the slug to identify the crop
+        fieldArea: fieldArea,
+        cropDensity: cropDensity,
+        waterCost: waterCost,
+    };
+
+    // Send the updated data to Flask using fetch
+    fetch('/api/update_crop_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === "Crop data updated successfully") {
+            // Update the selectedCrop variable with the new values
+            selectedCrop.fieldArea = fieldArea;
+            selectedCrop.cropDensity = cropDensity;
+            selectedCrop.waterCost = waterCost;
+            console.log(selectedCrop)
+            //alert('Crop data updated successfully!');
+        } else {
+            //alert('Failed to update crop data');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating crop data:', error);
+        //alert('An error occurred while updating crop data.');
+    });
+});
+
+function calcWaterCost() {
+    let totalMonthlyCost = 0; // Variable to accumulate the total monthly cost
+
+    // Loop through selectedCrop.irrigations to calculate water cost for each event
+    selectedCrop.irrigations.forEach(function(item) {
+        // Ensure all values are treated as numbers
+        console.log(item)
+        var waterRate = parseFloat(item.waterRate); // Convert to number
+        var duration = parseFloat(item.duration); // Convert to number
+        var costPerM3 = parseFloat(selectedCrop.waterCost); // Convert to number
+
+        // Calculate total water amount: output rate * duration
+        var totalWaterAmount = waterRate * duration;
+        // Calculate water cost: total water amount * cost per m³
+        var totalWaterCost = totalWaterAmount * costPerM3;
+
+        // Accumulate the total cost for the month
+        totalMonthlyCost += totalWaterCost;
+
+        // Output the calculated water cost for each irrigation
+        console.log('Date: ' + item.date + ', Water Cost: ' + totalWaterCost.toFixed(2) + ' USD');
+    });
+
+    // Output the total monthly water cost to the console
+    console.log('Total Monthly Water Cost: ' + totalMonthlyCost.toFixed(2) + ' USD');
+    
+    // Optionally, display the total monthly water cost on the webpage
+    document.getElementById('total-water-cost').textContent = '$' + totalMonthlyCost.toFixed(2);
+}
+
+function calcTotalWaterUsage() {
+    let totalMonthlyWaterUsage = 0; // Variable to accumulate the total water usage in liters
+
+    // Loop through selectedCrop.irrigations to calculate water usage for each event
+    selectedCrop.irrigations.forEach(function(item) {
+        // Ensure all values are treated as numbers
+        var waterRate = parseFloat(item.waterRate); // Convert to number
+        var duration = parseFloat(item.duration); // Convert to number
+
+        // Calculate total water amount in cubic meters: output rate * duration
+        var totalWaterAmount = waterRate * duration;
+
+        // Convert cubic meters to liters (1 m³ = 1000 L)
+        var totalWaterUsageInLiters = totalWaterAmount;
+
+        // Accumulate the total water usage for the month
+        totalMonthlyWaterUsage += totalWaterUsageInLiters;
+
+        // Output the calculated water usage for each irrigation
+        console.log('Date: ' + item.date + ', Water Usage: ' + totalWaterUsageInLiters.toFixed(2) + ' L');
+    });
+
+    // Output the total monthly water usage to the console
+    console.log('Total Monthly Water Usage: ' + totalMonthlyWaterUsage.toFixed(2) + ' L');
+    
+    // Optionally, display the total monthly water usage on the webpage
+    document.getElementById('total-water-usage').textContent = totalMonthlyWaterUsage.toFixed(2) + ' L';
+}
+
 </script>
