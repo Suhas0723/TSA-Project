@@ -15,7 +15,8 @@
         <aside>
             <div class="toggle">
                 <div class="logo">
-                    <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}" style="width: 25px; height: 25px">
+                    <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}"
+                        style="width: 25px; height: 25px">
                     <h2>Agro<span class="success">Assistant</span></h2>
                 </div>
             </div>
@@ -96,8 +97,8 @@
                 <div class="pH">
                     <div class="status">
                         <div class="info">
-                            <h3>Soil pH</h3>
-                            <h1>7.0</h1>
+                            <h3>UV Index</h3>
+                            <h1>{{ daily_averages[0]['UV'] }}</h1>
                         </div>
                         <div class="progresss">
                             <svg>
@@ -105,7 +106,7 @@
                             </svg>
                             <div class="circle-icon">
                                 <span class="material-icons-sharp">
-                                    science
+                                    light_mode
                                 </span>
                             </div>
                         </div>
@@ -113,33 +114,31 @@
                 </div>
             </div>
 
-            <div class="new-users">
-                <h2>New Users</h2>
-                <div class="user-list">
-                    <div class="user">
-                        <img src="images/profile-2.jpg">
-                        <h2>Jack</h2>
-                        <p>54 Min Ago</p>
+            <div class="plants">
+                <h2>Plants</h2>
+                <div class="plant-list">
+                    {% if plants %}
+                    {% for plant in plants %}
+                    <div class="plant">
+                        {% if plant['image_url'] %}
+                        <img src="{{ plant['image_url'] }}" alt="Avatar" />
+                        {% else %}
+                        <img src="{{ url_for('static', filename='agroAssisstantLogo.png') }}" alt="Avatar" />
+                        {% endif %}
+                        <h3>{{ plant['scientific_name'] }}</h3>
                     </div>
-                    <div class="user">
-                        <img src="images/profile-3.jpg">
-                        <h2>Amir</h2>
-                        <p>3 Hours Ago</p>
+                    {% endfor %}
+                    {% else %}
+                    <div class="plant">
+                        No Plants Yet! <a href="/crops/show-crops">Add Plants</a>
                     </div>
-                    <div class="user">
-                        <img src="images/profile-4.jpg">
-                        <h2>Ember</h2>
-                        <p>6 Hours Ago</p>
-                    </div>
-                    <div class="user">
-                        <img src="images/plus.png">
-                        <h2>More</h2>
-                        <p>New User</p>
-                    </div>
+                    {% endif %}
+
                 </div>
+
             </div>
 
-            <div class="recent-orders">
+            <div class="weather">
                 <h2>3-Day Weather Forecast</h2>
                 <table>
                     <thead>
@@ -184,21 +183,21 @@
 
                 <div class="profile">
                     <div class="info">
-                        <p>Hey, <b>Reza</b></p>
+                        <p>Hey, <b>{{ username }}</b></p>
                     </div>
                 </div>
 
             </div>
 
-            <div class="user-profile">
+            <div class="plant-profile">
                 <div class="logo">
                     <h2>AgriAI</h2>
                     <a href="/chatbot">Talk to AgriAI to learn more plant care tips!</a>
                 </div>
             </div>
 
-            <div class="reminders">
-                <div class="notification add-reminder">
+            <div class="crops">
+                <div class="notification add-crops">
                     <div>
                         <span class="material-icons-sharp">
                             add
