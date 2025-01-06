@@ -213,18 +213,6 @@ def api_to_db(uid):
         weather_data = get_weatherapi_averages()  
         db.collection("weatherapi_data").document(doc_id+"-"+uid).set(weather_data)
 
-# @app.route('/api-to-db', methods=['GET'])
-# def run_api_to_db():
-#     try:
-#         uid = session['currentUser']['uid']
-#         api_to_db(uid)
-#         return jsonify({"message": "API to DB process completed!"}), 200
-#     except KeyError:
-#         return jsonify({"error": "User is not logged in."}), 401
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500 
-    
-
 @app.route('/')
 def index():
     if "currentUser" in session:
@@ -382,13 +370,11 @@ def crops_api():
     
 @app.route('/api/add_irrigation', methods=['POST'])
 def add_irrigation():
-    print("Im fweaking goated")
     data = request.json
     if not data:
         return jsonify({"message": "No data provided"}), 400
     
     try:
-        # Retrieve the scientific name (slug) from the data
         for_plant_slug = data['forPlant']
 
         uid = session['currentUser']['uid']
@@ -396,8 +382,6 @@ def add_irrigation():
         documents = collection_ref.list_documents()
 
         matching_docs = []
-
-        # Find documents belonging to the current user
         for doc in documents:
             doc_name = doc.id
             print("Checking document:", doc_name)
@@ -406,18 +390,16 @@ def add_irrigation():
 
         plant_ref = None
 
-        # Find the specific document matching the slug
         for doc in matching_docs:
-            doc_snapshot = doc.get()  # Fetch the document's data
-            doc_data = doc_snapshot.to_dict()  # Convert the data to a dictionary
+            doc_snapshot = doc.get()
+            doc_data = doc_snapshot.to_dict()
             if doc_data and doc_data.get('slug') == for_plant_slug:
-                plant_ref = doc  # Store the matching DocumentReference
+                plant_ref = doc
                 break
 
         if not plant_ref:
             return jsonify({"message": "Matching plant not found"}), 404
 
-        # Add the irrigation data to the 'irrigations' subcollection for the matched plant
         plant_ref.update({
             'irrigations': firestore.ArrayUnion([data])
         })
@@ -430,16 +412,6 @@ def add_irrigation():
 @app.route('/api/get_crop_data', methods=['GET'])
 def get_crop_data():
     try:
-        # # Reference to the 'crops' collection in Firestore
-        # crops_ref = db.collection('users').document(session['currentUser']['uid']).collection('plants')  # replace 'crops' with your actual collection name
-        # crops = crops_ref.stream()
-
-        # # Collect data from Firestore and format it for JSON response
-        # crop_data = []
-        # for crop in crops:
-        #     crop_dict = crop.to_dict()
-        #     # crop_dict['id'] = crop.id  # Optionally, include the document ID
-        #     crop_data.append(crop_dict)
 
         uid = session['currentUser']['uid']
         collection_ref = db.collection('plant_data')
@@ -452,7 +424,7 @@ def get_crop_data():
         print(matching_docs)
 
         print(matching_docs)
-        return jsonify(matching_docs), 200  # Return crop data in JSON format
+        return jsonify(matching_docs), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -468,17 +440,12 @@ def update_crop_data():
     field_area = data['fieldArea']
     crop_density = data['cropDensity']
 
-    # Find the crop in the database
     plant_ref = findPlantWithSlug(slug)
 
     if not plant_ref:
         return jsonify({"message": "Plant not found"}), 404
 
-    # Assuming there is only one matching document
-    # plant_doc = plant_ref
-    # plant_doc_ref = db.collection('plants').document(plant_ref.id)
 
-    # Update the crop's field area and crop density
     plant_ref.update({
         'fieldArea': field_area,
         'cropDensity': crop_density,
@@ -494,7 +461,6 @@ def findPlantWithSlug(slug):
 
     matching_docs = []
 
-    # Find documents belonging to the current user
     for doc in documents:
         doc_name = doc.id
         print("Checking document:", doc_name)
@@ -503,10 +469,10 @@ def findPlantWithSlug(slug):
 
     plant_ref = None
 
-    # Find the specific document matching the slug
+
     for doc in matching_docs:
-        doc_snapshot = doc.get()  # Fetch the document's data
-        doc_data = doc_snapshot.to_dict()  # Convert the data to a dictionary
+        doc_snapshot = doc.get() 
+        doc_data = doc_snapshot.to_dict()  
         if doc_data and doc_data.get('slug') == slug:
             return doc
 
