@@ -104,6 +104,20 @@
                         </div>
                     </div>
                 </div>
+                <div class="visits">
+                    <div class="status">
+                        <div class="info">
+                            <h3>Growth Conditions</h3>
+                            <h1 id="growth_score"></h1>
+                            <span style="font-size: 1em; color: grey; margin-left: 5px;" id="growth_comment"></span>
+                        </div>
+                        <div class="progresss">
+                            <svg>
+                                <circle cx="38" cy="38" r="36"></circle>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div style="display: flex; justify-content: space-between; gap: 2rem;">
                 <div class="new-users" style="width: 50%;">
@@ -136,11 +150,7 @@
                 </div>
                 <div class="profile">
                     <div class="info">
-                        <p>Hey, <b>Reza</b></p>
-                        <small class="text-muted">Admin</small>
-                    </div>
-                    <div class="profile-photo">
-                        <img src="images/profile-1.jpg">
+                        <p>Hey, <b>{{ username }}</b></p>
                     </div>
                 </div>
             </div>
@@ -187,10 +197,10 @@
                         <label for="irrigation-date">Date</label>
                         <input type="date" id="irrigation-date" required>
             
-                        <label for="irrigation-duration">Duration (hrs)</label>
+                        <label for="irrigation-duration">Duration (min)</label>
                         <input type="number" id="irrigation-duration" required min="1">
 
-                        <label for="irrigation-rate">Water Output Rate</label>
+                        <label for="irrigation-rate">Water Output Rate (L/min)</label>
                         <input type="number" id="irrigation-rate" required>
             
                         <button type="submit" class="save-btn" id="save-irr-btn">Save</button>
@@ -199,7 +209,7 @@
 
                 <div id="irrigation-cards-container"></div>
             
-                <div class="notification">
+                
                     
                 </div>
             </div>
@@ -234,7 +244,7 @@
             data: {
                 labels: dates, 
                 datasets: [{
-                    label: 'Water Output (m³)',
+                    label: 'Water Output (L)',
                     data: waterOutputs, 
                     fill: false,
                     borderColor: 'rgba(75, 192, 192, 1)',
@@ -253,7 +263,7 @@
                     y: {
                         title: {
                             display: true,
-                            text: 'Water Output (m³)'
+                            text: 'Water Output (L)'
                         }
                     }
                 }
@@ -497,6 +507,32 @@
 .material-icons-sharp {
     font-size: 1.5rem;
 }
+
+.error-box {
+    background-color: #f44336;
+    color: white;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .hidden {
+    display: none;
+    }
+
+    .close-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    }
+
 </style>
 
 <script>
@@ -531,6 +567,7 @@ irrigationFormData.addEventListener('submit', (e) => {
     renderCalendar();
     calcWaterCost();
     calcTotalWaterUsage();
+    fetchGrowthScore();
 
     fetch('/api/add_irrigation', {
         method: 'POST',
@@ -591,12 +628,13 @@ fetch('/api/get_crop_data')
       const selectedCropId = this.value;
       selectedCrop = data.find(crop => crop.slug === selectedCropId); 
       console.log('Selected Crop:', selectedCrop);
-      if (selectedCrop) {
+      if (selectedCrop.irrigations) {
         renderIrrigationCards(selectedCrop.irrigations); 
         renderLineGraph();
         renderCalendar();
         calcWaterCost();
         calcTotalWaterUsage();
+        fetchGrowthScore();
       }
     });
   })
@@ -670,12 +708,14 @@ document.querySelector('.update-btn').addEventListener('click', function() {
             selectedCrop.cropDensity = cropDensity;
             selectedCrop.waterCost = waterCost;
             console.log(selectedCrop)
-        } else {
         }
     })
     .catch(error => {
         console.error('Error updating crop data:', error);
     });
+
+    calcWaterCost();
+    
 });
 
 function calcWaterCost() {
@@ -684,7 +724,10 @@ function calcWaterCost() {
 
         var waterRate = parseFloat(item.waterRate);
         var duration = parseFloat(item.duration); 
-        var costPerM3 = parseFloat(selectedCrop.waterCost); 
+        var costPerM3 = parseFloat(selectedCrop.waterCost);
+        if (!costPerM3) {
+            return
+        }
 
         var totalWaterAmount = waterRate * duration;
         var totalWaterCost = totalWaterAmount * costPerM3;
@@ -717,6 +760,49 @@ function calcTotalWaterUsage() {
     console.log('Total Monthly Water Usage: ' + totalMonthlyWaterUsage.toFixed(2) + ' L');
     
     document.getElementById('total-water-usage').textContent = totalMonthlyWaterUsage.toFixed(2);
+}
+
+async function fetchGrowthScore() {
+    const growthScoreElement = document.getElementById('growth_score');
+    plantName = selectedCrop.slug
+    console.log(JSON.stringify({ plantName }))
+
+    try {
+        const response = await fetch('/api/growing_conditions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ plantName }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error fetching growth score:', errorData.message);
+            return;
+        }
+
+        const data = await response.json();
+        growthScoreElement.textContent = `${data.growth_score}/100`;
+        document.getElementById('growth_comment').textContent = getGrowthCondition(data.growth_score)
+    } catch (error) {
+        console.error('An error occurred:', error);
+        growthScoreElement.textContent = 'Error: Unable to fetch growth score.';
+    }
+}
+
+function getGrowthCondition(score) {
+    if (score > 80) {
+        return 'Ideal';
+    } else if (score >= 60 && score <= 80) {
+        return 'Good';
+    } else if (score >= 40 && score < 60) {
+        return 'Average';
+    } else if (score >= 20 && score < 40) {
+        return 'Poor';
+    } else {
+        return 'Very Poor';
+    }
 }
 
 </script>

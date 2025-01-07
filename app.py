@@ -7,6 +7,7 @@ import requests
 import firebase_admin
 from firebase_admin import credentials,  firestore
 from geopy.geocoders import Nominatim
+import json
 
 app = Flask(__name__)
 
@@ -245,7 +246,7 @@ def index():
 
 @app.route('/water-usage')
 def water_usage():
-    return render_template('water_usage1.html', uid=session['currentUser']['uid'])
+    return render_template('water_usage1.html', uid=session['currentUser']['uid'], username=session['currentUser']['name'])
 
 
 @app.route('/chatbot', methods=['GET'])
@@ -475,6 +476,67 @@ def findPlantWithSlug(slug):
         doc_data = doc_snapshot.to_dict()  
         if doc_data and doc_data.get('slug') == slug:
             return doc
+        
+@app.route("/api/growing_conditions", methods=["POST"])
+def growing_conditions():
+    data = request.json
+    if not data or 'plantName' not in data:
+        return jsonify({"message": "Invalid data provided"}), 400
+
+    plant_name = data['plantName']
+    uid = session.get('currentUser', {}).get('uid')
+
+    plant_doc_ref = db.collection('plant_data').document(f'{plant_name}-{uid}')
+    plant_doc = plant_doc_ref.get()
+
+    try:
+        score = plant_doc.get('growth_score')
+    except:
+        score = None
+
+    if score is None:
+        api_id = f"{date.today()}-{uid}"
+
+        stormglass_doc = db.collection('stormglass_data').document(api_id).get()
+        weather_doc = db.collection('weatherapi_data').document(api_id).get()
+
+        stormglass_data = stormglass_doc.to_dict() 
+        hours_data = stormglass_data.get('hours', [{}])
+
+        conditions = {
+            'soilMoisture': hours_data[0].get('soilMoisture', {}).get('sg', 0.0),
+            #'soilTemp': hours_data[0].get('soilTemperature', {}).get('sg', 0.0),
+        }
+
+        weather_data = weather_doc.to_dict()
+        daily_averages = weather_data.get('daily_averages', [{}])
+
+        conditions.update({
+            'avgCloud': daily_averages[0].get('averageCloud', 0.0),
+            'avgPrecip': daily_averages[0].get('averagePrecip', 0.0),
+            'avgTemp': daily_averages[0].get('averageTemperature', 0.0),
+        })
+
+        client = OpenAI(api_key=authfile['openAI']['apiKey'])
+        instructions = "I will provide today's current soil and weather conditions, as well as a plant name. You must determine how well the plant can grow under these conditions, and return a score from 0 to 100. Try to keep the score on the higher end, only give bad score if the conditions are very poor. Only return the score number value, no other text at all."
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": f"Plant: {plant_name}, Conditions: {json.dumps(conditions)}"}
+            ]
+        )
+        response = dict(completion.choices[0].message)['content']
+        score = float(response.strip())
+
+        plant_doc_ref.set({
+            'growth_score': score,
+            'date': str(date.today())
+        }, merge=True)
+
+    return jsonify({"growth_score": score}), 200
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
